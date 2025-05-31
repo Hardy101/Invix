@@ -31,7 +31,9 @@ class Event(Base):
     created_by = Column(Integer, ForeignKey("users.id"))
     time = Column(String, nullable=True)
     image_url = Column(String, default="default_event.jpg")
+
     guests = relationship("Guest", back_populates="event")
+    activitylogs = relationship("ActivityLog", back_populates="event")
 
 
 class Guest(Base):
@@ -52,7 +54,7 @@ class Guest(Base):
 
 
 class ActivityLog(Base):
-    __tablename__ = "activitylog"
+    __tablename__ = "activitylogs"
 
     id = Column(Integer, primary_key=True, index=True)
     guest_id = Column(Integer, ForeignKey("guests.id"), nullable=False)
@@ -62,3 +64,5 @@ class ActivityLog(Base):
     check_out_time = Column(DateTime, default=datetime.now)
     status = Column(String, default="pending")
     method = Column(String)
+
+    event = relationship("Event", back_populates="activitylogs")
