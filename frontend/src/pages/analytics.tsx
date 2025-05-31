@@ -6,6 +6,7 @@ import Hr from "../components/hr";
 import CheckInBarChart from "../components/barCharts";
 import AttendancePieChart from "../components/analytics.tsx/pieCharts";
 import NavMenu from "../components/eventDetails/navMenu";
+import ActivityLog from "../components/analytics.tsx/activityLogs";
 
 const options = [
   { text: "Birthday Party", value: "birthdayparty" },
@@ -106,8 +107,9 @@ const Analytics: React.FC = () => {
           </div>
 
           {/* Activity logs */}
-          <div className="activitylogs mt-16">
+          <div className="activitylogs mt-16 pb-16">
             <h2 className="text-xl font-poppins-bold mb-8">Activity logs</h2>
+            <ActivityLog />
           </div>
         </div>
       </div>
