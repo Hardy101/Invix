@@ -1,9 +1,11 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, VARCHAR, DateTime
 from sqlalchemy.orm import relationship
 from uuid import uuid4
+from datetime import datetime
 
 # Local imports
 from database import Base
+
 # from .database import Base
 
 
@@ -18,7 +20,6 @@ class User(Base):
     plan = Column(String, default="basic")
 
 
-# Model for Event Table
 class Event(Base):
     __tablename__ = "events"
 
@@ -33,7 +34,6 @@ class Event(Base):
     guests = relationship("Guest", back_populates="event")
 
 
-# Guest model
 class Guest(Base):
     __tablename__ = "guests"
 
@@ -49,3 +49,16 @@ class Guest(Base):
 
     def __repr__(self):
         return f"<Guest(id={self.id}, name={self.name}, tags={self.tags})>"
+
+
+class ActivityLog(Base):
+    __tablename__ = "activitylog"
+
+    id = Column(Integer, primary_key=True, index=True)
+    guest_id = Column(Integer, ForeignKey("guests.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    name = Column(VARCHAR, nullable=False)
+    check_in_time = Column(DateTime, default=datetime.now)
+    check_out_time = Column(DateTime, default=datetime.now)
+    status = Column(String, default="pending")
+    method = Column(String)
