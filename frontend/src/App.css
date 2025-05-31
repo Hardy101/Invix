@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .bg-bd {
+    background-image: url("assets/bd.jpg");
+  }
+  .bg-conference {
+    background-image: url("assets/conference.jpg");
+  }
+  .bg-meeting {
+    background-image: url("assets/meeting.jpg");
+  }
+}
+
+@theme {
+  --color-primary: #6c38ff;
+  --color-secondary: #d9e8f5;
+  --color-secondary-2: #417576;
+  --color-secondary-3: #225050;
+  --color-red: #b84042;
+  --color-red-2: #c36966;
+  --color-gray-1: #626262;
+  --color-gray-2: #979797;
+  --color-shadow: #486c6f;
+  --color-shadow-2: #719193;
+  --color-shadow-3: #689a9f;
+  --color-green-1: #4caf50;
+  --font-poppins: poppins;
+  --font-poppins-medium: poppins-medium;
+  --font-poppins-bold: poppins-bold;
+  --font-dmserif: dmserif;
+  --font-ibmplex: ibmplex;
+  --font-ibmplex-medium: ibmplex-medium;
+  --font-ibmplex-bold: ibmplex-bold;
+}
+
+@font-face {
+  font-family: poppins;
+  src: url(assets/fonts/Poppins-Regular.ttf);
+}
+@font-face {
+  font-family: poppins-bold;
+  src: url(assets/fonts/Poppins-Bold.ttf);
+}
+@font-face {
+  font-family: poppins-medium;
+  src: url(assets/fonts/Poppins-Medium.ttf);
+}
+@font-face {
+  font-family: dmserif;
+  src: url(assets/fonts/DM_Serif_Text/DMSerifText-Regular.ttf);
+}
+@font-face {
+  font-family: ibmplex;
+  src: url(assets/fonts/IBM_Plex_Serif/IBMPlexSerif-Regular.ttf);
+}
+@font-face {
+  font-family: ibmplex-medium;
+  src: url(assets/fonts/IBM_Plex_Serif/IBMPlexSerif-Medium.ttf);
+}
+@font-face {
+  font-family: ibmplex-bold;
+  src: url(assets/fonts/IBM_Plex_Serif/IBMPlexSerif-Bold.ttf);
+}
+/* Vanilla */
+:root {
+  --animate-duration: 600ms;
+}
+* button {
+  cursor: pointer;
+}
+.box-shadow-1 {
+  box-shadow: 0 0.275em 0 #417576;
+}
+.bs-2 {
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+.overlay-hole {
+  background: black;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  clip-path: path("M0,0 H100% V100% H0 Z M35%,35% H65% V65% H35% Z");
+}
