@@ -15,27 +15,34 @@ const ActivityLog = () => {
         </tr>
       </thead>
       <tbody>
-        <tr className="grid grid-cols-6 items-center p-3 text-left">
+        <tr className="grid grid-cols-6 items-center p-3 text-left text-sm">
           <td className="flex gap-4 items-center">
             <input type="checkbox" name="selectguests" id="selectguests" />
             <span>1</span>
           </td>
           <td>Eghosa</td>
           <td className="flex items-center gap-4">
-            <span className="bg-green-100 text-green-400 text-sm p-2 rounded-lg font-poppins-medium">
+            <span className="text-green-400 font-poppins-medium">
               checked-in
             </span>
           </td>
-          <td>
-            <span className="text-green-400 text-sm font-poppins-medium">
-              12:30 AM
+          <td>12:30 AM</td>
+          <td>12:30 AM</td>
+          <td>qrcode</td>
+        </tr>
+        <tr className="grid grid-cols-6 items-center p-3 text-left text-sm">
+          <td className="flex gap-4 items-center">
+            <input type="checkbox" name="selectguests" id="selectguests" />
+            <span>2</span>
+          </td>
+          <td>Bernadette</td>
+          <td className="flex items-center gap-4">
+            <span className="text-amber-400 font-poppins-medium">
+              pending
             </span>
           </td>
-          <td>
-            <span className="text-amber-400 text-sm p-2 rounded-md font-poppins-medium">
-              12:30 AM
-            </span>
-          </td>
+          <td>12:30 AM</td>
+          <td>4:00 PM</td>
           <td>qrcode</td>
         </tr>
       </tbody>

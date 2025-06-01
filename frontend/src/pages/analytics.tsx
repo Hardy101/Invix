@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 // Local imports
 import Navbar from "../components/navbar";
 import Overlay from "../components/overlay";
@@ -5,18 +8,15 @@ import CustomSelect from "../components/customSelectField";
 import Hr from "../components/hr";
 import CheckInBarChart from "../components/barCharts";
 import AttendancePieChart from "../components/analytics.tsx/pieCharts";
+import { url } from "../constants/variables";
 import NavMenu from "../components/eventDetails/navMenu";
 import ActivityLog from "../components/analytics.tsx/activityLogs";
 
-const options = [
-  { text: "Birthday Party", value: "birthdayparty" },
-  { text: "Meeting", value: "meeting" },
-];
+interface Event {
+  id: string;
+  name: string;
+}
 
-const chartOptions = [
-  { text: "Bar Chart", value: "barchart" },
-  { text: "Line Chart", value: "linechart" },
-];
 
 const checkInData = [
   { time: "18:00", guest: 12 },
@@ -33,6 +33,25 @@ const checkInData = [
 const analyticsParamsClasses = "grid grid-col-3 items-center gap-x-4 gap-y-2";
 
 const Analytics: React.FC = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const eventOptions = events.map((event) => ({
+    text: event.name,
+    value: event.id,
+  }));
+  
+  const fetchAllEvents = async () => {
+    const response = await axios.get(`${url}/event/all`, {
+      withCredentials: true,
+    });
+    if (response.status === 200) {
+      setEvents(response.data);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllEvents();
+  }, []);
+
   return (
     <div className="relative h-dvh md:px-8 p-4 pb-32">
       <Navbar />
@@ -46,7 +65,7 @@ const Analytics: React.FC = () => {
           <CustomSelect
             name="eventSelect"
             id="eventSelect"
-            options={options}
+            options={eventOptions}
             customClassNames="font-poppins"
           />
         </div>
@@ -92,7 +111,7 @@ const Analytics: React.FC = () => {
               <CustomSelect
                 name="eventSelect"
                 id="eventSelect"
-                options={chartOptions}
+                options={eventOptions}
                 customClassNames="font-poppins"
               />
             </div>
@@ -102,7 +121,6 @@ const Analytics: React.FC = () => {
           {/* Attendance */}
           <div className="attendance bg-gray-100 rounded-xl p-8 mt-16">
             <h2 className="text-xl font-poppins-bold mb-8">Attendance</h2>
-
             <AttendancePieChart />
           </div>
 
