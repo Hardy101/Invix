@@ -19,7 +19,7 @@ const TopNavigation: React.FC<CreateEventFormProps> = ({
   ];
 
   return (
-    <div className="relative nav text-sm py-4 mx-8 border-b-2 border-gray-300">
+    <div className="relative nav text-sm py-4 px-8 border-b-2 border-gray-300">
       <div className="w-full mobile-nav flex items-center justify-between md:hidden">
         <button
           onClick={() => setIsCreateEventActive(true)}
@@ -59,7 +59,7 @@ const TopNavigation: React.FC<CreateEventFormProps> = ({
         <li className="ml-auto">
           <button
             onClick={() => setIsCreateEventActive(true)}
-            className="grow border-b-4 border-primary text-black hover:text-white hover:bg-primary hover:border-none transition-all duration-300"
+            className="grow bg-primary rounded-lg text-white p-2 transition-all duration-300"
           >
             Create Event
           </button>

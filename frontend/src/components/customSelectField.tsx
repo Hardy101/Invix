@@ -31,7 +31,7 @@ const CustomSelect: React.FC<FieldProps> = ({
     >
       <Select.Trigger
         id={id}
-        className={`inline-flex gap-4 items-center justify-between px-4 py-2 w-fit rounded-xl shadow border text-left text-sm ${customClassNames}`}
+        className={`inline-flex gap-4 items-center justify-between px-4 py-2 w-fit rounded-md shadow border text-left text-sm ${customClassNames}`}
       >
         <Select.Value placeholder="Select an option" />
         <Select.Icon>

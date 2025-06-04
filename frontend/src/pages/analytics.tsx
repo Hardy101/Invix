@@ -1,44 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { Users, UserCheck, UserX, Clock, Upload } from "lucide-react";
 
-// Local imports
-import Navbar from "../components/navbar";
-import Overlay from "../components/overlay";
+// shadcn
+import { Card } from "../components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+
+// local imports
+import Charts from "../components/analytics/charts";
+import ActivityLog from "../components/analytics/activityLogs";
 import CustomSelect from "../components/customSelectField";
-import Hr from "../components/hr";
-import CheckInBarChart from "../components/barCharts";
-import AttendancePieChart from "../components/analytics.tsx/pieCharts";
 import { url } from "../constants/variables";
-import NavMenu from "../components/eventDetails/navMenu";
-import ActivityLog from "../components/analytics.tsx/activityLogs";
+import TopNavigation from "../components/homePage/topNavigation";
 
-interface Event {
-  id: string;
+interface EventProps {
   name: string;
+  id: string;
 }
 
-
-const checkInData = [
-  { time: "18:00", guest: 12 },
-  { time: "18:15", guest: 25 },
-  { time: "18:30", guest: 9 },
-  { time: "18:45", guest: 18 },
-  { time: "19:00", guest: 5 },
-  { time: "19:45", guest: 10 },
-  { time: "19:55", guest: 25 },
-  { time: "20:00", guest: 50 },
-  { time: "20:25", guest: 51 },
-];
-
-const analyticsParamsClasses = "grid grid-col-3 items-center gap-x-4 gap-y-2";
-
-const Analytics: React.FC = () => {
-  const [events, setEvents] = useState<Event[]>([]);
+export default function Analytics() {
+  const [isCreateEventActive, setIsCreateEventActive] = useState(false);
+  const [events, setEvents] = useState<EventProps[]>([]);
   const eventOptions = events.map((event) => ({
     text: event.name,
     value: event.id,
   }));
-  
+
   const fetchAllEvents = async () => {
     const response = await axios.get(`${url}/event/all`, {
       withCredentials: true,
@@ -53,86 +41,97 @@ const Analytics: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative h-dvh md:px-8 p-4 pb-32">
-      <Navbar />
-      <Overlay />
-      <NavMenu text="Analytics" />
-      <Hr />
-
-      <div className="main mt-10">
-        <div className="heading flex items-center justify-between">
-          <h1 className="text-2xl font-poppins-bold">Dashboard</h1>
-          <CustomSelect
-            name="eventSelect"
-            id="eventSelect"
-            options={eventOptions}
-            customClassNames="font-poppins"
-          />
-        </div>
-
-        <div className="body mt-10">
-          <h2 className="text-xl font-poppins-bold mb-4">Overview</h2>
-          <Hr />
-          <div className="analytics mt-4 grid grid-cols-2 md:grid-cols-6 gap-y-8">
-            <p className={analyticsParamsClasses}>
-              <span className="text-gray-1 text-sm">Expected guests</span>
-              <span className="text-3xl font-poppins-bold">400</span>
-            </p>
-            <p className={analyticsParamsClasses}>
-              <span className="col-span-3 text-gray-1 text-sm">No-shows</span>
-              <span className="text-3xl font-poppins-bold">350</span>
-              <span className="flex gap-2 items-center w-fit bg-red-100 text-sm text-black px-4 py-px rounded-full">
-                <b className="text-red-500 text-xl">•</b>
-                20
-              </span>
-            </p>
-            <p className={analyticsParamsClasses}>
-              <span className="col-span-3 text-gray-1 text-sm">Check-ins</span>
-              <span className="text-3xl font-poppins-bold">50</span>
-              <span className="flex gap-2 items-center w-fit bg-green-200 text-sm text-black px-4 py-px rounded-full">
-                <b className="text-green-500 text-xl">•</b>
-                20%
-              </span>
-            </p>
-            <p className={analyticsParamsClasses}>
-              <span className="col-span-3 text-gray-1 text-sm">Check-outs</span>
-              <span className="text-3xl font-poppins-bold">0</span>
-              <span className="flex gap-2 items-center w-fit bg-amber-200 text-sm text-black px-4 py-px rounded-full">
-                <b className="text-amber-500 text-xl">•</b>
-                0%
-              </span>
-            </p>
+    <div className="min-h-screen bg-gray-50/50">
+      {/* Navigation */}
+      <TopNavigation
+        isCreateEventActive={isCreateEventActive}
+        setIsCreateEventActive={setIsCreateEventActive}
+      />
+      {/* Header */}
+      <div className="border-b bg-white">
+        <div className="flex h-16 items-center px-6">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-poppins-bold">
+              Guest Management Analytics
+            </h1>
           </div>
-
-          {/* Check-in */}
-          <div className="checkins bg-gray-100 rounded-xl p-4 mt-16 md:p-8">
-            <div className="info flex items-center justify-between">
-              <h2 className="text-xl font-poppins-bold mb-8">Check-ins</h2>
-              <CustomSelect
-                name="eventSelect"
-                id="eventSelect"
-                options={eventOptions}
-                customClassNames="font-poppins"
-              />
-            </div>
-            <CheckInBarChart data={checkInData} />
-          </div>
-
-          {/* Attendance */}
-          <div className="attendance bg-gray-100 rounded-xl p-8 mt-16">
-            <h2 className="text-xl font-poppins-bold mb-8">Attendance</h2>
-            <AttendancePieChart />
-          </div>
-
-          {/* Activity logs */}
-          <div className="activitylogs mt-16 pb-16">
-            <h2 className="text-xl font-poppins-bold mb-8">Activity logs</h2>
-            <ActivityLog />
+          <div className="ml-auto flex items-center space-x-4">
+            <Button variant="outline" size="sm">
+              <Upload className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <CustomSelect
+              name="eventSelect"
+              id="eventSelect"
+              options={eventOptions}
+              customClassNames="font-poppins"
+            />
           </div>
         </div>
       </div>
+
+      <div className="p-6 space-y-6">
+        {/* Key Metrics */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-poppins-medium">
+                Total Guests
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-poppins-bold">257</div>
+              <p className="text-xs text-muted-foreground">
+                +12% from yesterday
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-poppins-medium">
+                Checked In
+              </CardTitle>
+              <UserCheck className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-poppins-bold">145</div>
+              <p className="text-xs text-muted-foreground">
+                Currently on premises
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-poppins-medium">
+                Checked Out
+              </CardTitle>
+              <UserX className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-poppins-bold">89</div>
+              <p className="text-xs text-muted-foreground">Completed visits</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-poppins-medium">
+                Pending
+              </CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-poppins-bold">23</div>
+              <p className="text-xs text-muted-foreground">Awaiting check-in</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Charts />
+
+        {/* Activity Logs Table */}
+        <ActivityLog />
+      </div>
     </div>
   );
-};
-
-export default Analytics;
+}
