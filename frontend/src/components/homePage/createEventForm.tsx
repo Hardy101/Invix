@@ -1,13 +1,48 @@
-import axios from "axios";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+
+// shadcn
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
+  X,
+  Upload,
+  Calendar,
+  MapPin,
+  Users,
+  FileText,
+  Plus,
+  Trash2,
+  ImageIcon,
+  Star,
+  Save,
+  Eye,
+} from "lucide-react";
 
 // Local imports
-import { CreateEventFormProps } from "../../constants/interfaces";
-import { useEventStore } from "../../store/useEventsStore";
+import {
+  CreateEventFormProps,
+  EventFormData,
+} from "../../constants/interfaces";
+import { useNavigate } from "react-router";
 import { useModalState } from "../../store/useModalStore";
+import { useEventStore } from "../../store/useEventsStore";
+import axios from "axios";
 import { url } from "../../constants/variables";
-import { EventFormData } from "../../constants/interfaces";
 
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
   isCreateEventActive,
@@ -17,6 +52,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const [formData, setFormData] = useState<EventFormData>({
     name: "",
     date: "",
+    time: "",
     location: "",
     expected_guests: 0,
   });
@@ -27,9 +63,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const { setIsModalActive } = useModalState();
-  const formFields =
-    "p-4 border border-black rounded-2xl font-poppins-medium placeholder:font-poppins";
-  const formLabelClass = "font-poppins-bold text-lg";
 
   const refreshEvents = () => {
     fetchEvents();
@@ -102,239 +135,390 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       guest_list: undefined,
     });
     setFormError("");
+    setFiles({});
+  };
+
+  const [highlights, setHighlights] = useState([{ id: 1, text: "" }]);
+  const [guestList, setGuestList] = useState<File | null>(null);
+
+  const addHighlight = () => {
+    setHighlights([...highlights, { id: Date.now(), text: "" }]);
+  };
+
+  const removeHighlight = (id: number) => {
+    setHighlights(highlights.filter((h) => h.id !== id));
+  };
+
+  const updateHighlight = (id: number, text: string) => {
+    setHighlights(highlights.map((h) => (h.id === id ? { ...h, text } : h)));
   };
 
   return (
     <div
-      className={`fixed w-full h-full top-0 ${
-        isCreateEventActive ? "translate-y-0" : "translate-y-full"
+      className={`min-h-screen bg-gray-50/50 p-4 fixed w-full h-full top-0 ${
+        isCreateEventActive ? "scale-100" : "scale-0"
       } left-0 bg-white font-poppins overflow-y-auto z-20 transition-all ease-in-out duration-500`}
     >
-      <div className="heading px-4 pt-4">
-        <button
-          onClick={() => {
-            setIsCreateEventActive(false);
-            resetForm();
-          }}
-          type="button"
-          className="px-3 py-2 flex items-center rounded-md bs-2 text-xl hover:bg-primary hover:text-white"
-        >
-          <i className="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <form className="grid gap-y-8 p-8" onSubmit={handleSubmit}>
-        <div className="heading flex items-center gap-4">
-          <h2 className="text-3xl font-poppins-bold">Create Event</h2>
-        </div>
-        {formError && (
-          <div className="form-control">
-            <p className="text-red font-poppins-bold text-xl">{formError}</p>
-          </div>
-        )}
-
-        {/* Upload Form field */}
-        <div className="form-control grid gap-y-3">
-          <span className={formLabelClass}>
-            Upload file{" "}
-            <span className="text-base font-poppins">(optional)</span>
-          </span>
-          <label
-            htmlFor="image"
-            className="flex flex-col gap-2 items-center py-4 border-2 border-black border-dashed rounded-2xl cursor-pointer"
-          >
-            {files.image ? (
-              <span className="text-sm font-poppins-bold text-gray-600">
-                {files.image.name}
-              </span>
-            ) : (
-              <>
-                <i className="fa-solid fa-image text-5xl text-primary"></i>
-                <span>Drag or drop image to upload</span>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-md border font-poppins-bold text-primary hover:text-white hover:bg-primary"
-                >
-                  Select files
-                </button>
-              </>
-            )}
-          </label>
-          <input
-            type="file"
-            name="image"
-            id="image"
-            accept="image/*"
-            onChange={handleFileChange}
-            hidden
-          />
-        </div>
-        {/* End of Upload Form field */}
-        {/* Name of Event form field */}
-        <div className="form-control grid gap-y-3">
-          <label htmlFor="name" className={formLabelClass}>
-            Name of Event
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={formFields}
-            placeholder="Min Char 4."
-          />
-        </div>
-        {/* Name of Event form field */}
-        {/* Date and time event form field*/}
-        <div className="form-control grid grid-cols-2 gap-y-3 gap-x-8">
-          <label
-            htmlFor="date"
-            className={`${formLabelClass} col-span-2 grid grid-cols-2`}
-          >
-            Date
-          </label>
-          <input
-            type="date"
-            name="date"
-            id="date"
-            onChange={handleChange}
-            value={formData.date}
-            className={formFields}
-          />
-          <input
-            type="time"
-            name="time"
-            id="time"
-            onChange={handleChange}
-            value={formData.time}
-            className={formFields}
-          />
-        </div>
-        {/* End of Date and time event form field */}
-
-        {/* Location of Event form field */}
-        <div className="form-control grid gap-y-3">
-          <label htmlFor="location" className={formLabelClass}>
-            Location
-          </label>
-          <input
-            type="text"
-            name="location"
-            id="location"
-            value={formData.location}
-            onChange={handleChange}
-            className={formFields}
-            placeholder="Min Char 4."
-          />
-        </div>
-        {/* Location of Event form field */}
-
-        {/* Number of guests form field */}
-        <div className="form-control grid gap-y-3">
-          <label htmlFor="expected_guests" className={formLabelClass}>
-            Expected number of guests
-          </label>
-          <input
-            type="number"
-            name="expected_guests"
-            id="expected_guests"
-            value={formData.expected_guests}
-            onChange={handleChange}
-            className={formFields}
-            min={1}
-            placeholder="Min 1."
-          />
-        </div>
-        {/* Number of guests form field */}
-
-        {/* Upload Form field */}
-        <div className="form-control grid gap-y-3">
-          <div className="label">
-            <span className={formLabelClass}>
-              Guest list{" "}
-              <span className="text-base font-poppins">(optional)</span>
-            </span>
-            <p className="italic">
-              see{" "}
-              <span className="text-primary font-poppins-bold">
-                how to upload{" "}
-              </span>
-              guest list
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create New Event
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Fill in the details to create your event
             </p>
           </div>
-          <label
-            htmlFor="guest_list"
-            className="flex flex-col gap-2 items-center py-4 border-2 border-black border-dashed rounded-2xl"
+          <Button
+            onClick={() => {
+              setIsCreateEventActive(false);
+              resetForm();
+            }}
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
           >
-            {files.guest_list ? (
-              <span className="text-sm font-poppins-bold text-gray-600">
-                {files.guest_list.name}
-              </span>
-            ) : (
-              <>
-                <i className="fa-solid fa-file-excel text-5xl text-primary"></i>
-                <span>Drag or drop files to upload</span>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-md border font-poppins-bold text-primary hover:text-white hover:bg-primary"
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Form */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                  Basic Information
+                </CardTitle>
+                <CardDescription>
+                  Enter the essential details about your event
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eventName">Event Name *</Label>
+                  <Input
+                    id="eventName"
+                    name="name"
+                    placeholder="Enter your event name"
+                    className="text-base"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Event Category</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="conference">Conference</SelectItem>
+                      <SelectItem value="party">Party</SelectItem>
+                      <SelectItem value="workshop">Workshop</SelectItem>
+                      <SelectItem value="networking">Networking</SelectItem>
+                      <SelectItem value="seminar">Seminar</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Date & Time */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                  Date & Time
+                </CardTitle>
+                <CardDescription>
+                  When will your event take place?
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">Date</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      name="date"
+                      className="text-base"
+                      value={formData.date}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="startTime">Time</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      name="time"
+                      className="text-base"
+                      value={formData.time}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Location & Capacity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-purple-600" />
+                  Location & Capacity
+                </CardTitle>
+                <CardDescription>
+                  Where will your event be held?
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="location">Venue *</Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    placeholder="Enter venue name or address"
+                    className="text-base"
+                    value={formData.location}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="expected_guests">Expected Guests *</Label>
+                    <Input
+                      id="expected_guests"
+                      name="expected_guests"
+                      type="number"
+                      placeholder="0"
+                      min="1"
+                      className="text-base"
+                      value={formData.expected_guests}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Event Highlights */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-purple-600" />
+                  Event Highlights
+                </CardTitle>
+                <CardDescription>
+                  Add key features or activities (optional)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {highlights.map((highlight, index) => (
+                  <div key={highlight.id} className="flex gap-2">
+                    <Input
+                      placeholder={`Highlight ${index + 1}`}
+                      value={highlight.text}
+                      onChange={(e) =>
+                        updateHighlight(highlight.id, e.target.value)
+                      }
+                      className="flex-1"
+                    />
+                    {highlights.length > 1 && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeHighlight(highlight.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={addHighlight}
+                  className="w-full"
                 >
-                  Select files
-                </button>
-              </>
-            )}
-          </label>
-          <input
-            type="file"
-            name="guest_list"
-            id="guest_list"
-            accept=".csv,.xlsx,.xls"
-            onChange={handleFileChange}
-            hidden
-          />
-        </div>
-        {/* End of Upload Form field */}
-        {/* Highlights Form field */}
-        <div className="form-control grid gap-y-3">
-          <label
-            htmlFor="h-time"
-            className={`flex items-baseline gap-2 ${formLabelClass}`}
-          >
-            Highlights
-            <span className="text-base font-poppins">(optional)</span>
-          </label>
-          <div className="input grid grid-cols-3 gap-4">
-            <input
-              type="text"
-              name="activity"
-              id="activity"
-              placeholder="activity"
-              className={`col-span-2 ${formFields}`}
-            />
-            <input
-              type="number"
-              name="h-time"
-              id="h-time"
-              className={formFields}
-            />
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Highlight
+                </Button>
+              </CardContent>
+            </Card>
           </div>
-          <button
-            type="button"
-            className="ml-auto px-3 py-2 flex gap-2 items-center rounded-2xl bs-2 bg-primary text-white"
-          >
-            <i className="fa-solid fa-plus"></i>
-            <span>Add</span>
-          </button>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Event Image */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5 text-purple-600" />
+                  Event Image
+                </CardTitle>
+                <CardDescription>
+                  Upload a cover image for your event
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <input
+                  type="file"
+                  name="image"
+                  id="image"
+                  accept=".png,.jpg"
+                  onChange={handleFileChange}
+                  hidden
+                />
+                <label
+                  htmlFor="image"
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors"
+                >
+                  {files.image ? (
+                    <div className="space-y-2">
+                      <img
+                        src={
+                          files.image
+                            ? URL.createObjectURL(files.image)
+                            : "/placeholder.svg"
+                        }
+                        alt="Event preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFiles({ ...files, image: undefined })}
+                      >
+                        Remove Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="h-8 w-8 text-purple-600 mx-auto" />
+                      <p className="text-sm text-gray-600">
+                        Drag & drop or click to upload
+                      </p>
+                      <Button variant="outline" size="sm">
+                        Select Image
+                      </Button>
+                    </div>
+                  )}
+                </label>
+              </CardContent>
+            </Card>
+
+            {/* Guest List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-purple-600" />
+                  Guest List
+                </CardTitle>
+                <CardDescription>
+                  Upload a CSV file with guest information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <input
+                  type="file"
+                  name="guest_list"
+                  id="guest_list"
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileChange}
+                  hidden
+                />
+
+                <label
+                  htmlFor="guest_list"
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors"
+                >
+                  {files.guest_list ? (
+                    <div className="space-y-2">
+                      <FileText className="h-8 w-8 text-green-600 mx-auto" />
+                      <p className="text-sm font-poppins-medium">
+                        {files.guest_list.name}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setGuestList(null)}
+                      >
+                        Remove File
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="h-8 w-8 text-purple-600 mx-auto" />
+                      <p className="text-sm text-gray-600">Upload CSV file</p>
+                      <Button variant="outline" size="sm">
+                        Select File
+                      </Button>
+                      <p className="text-xs text-gray-500">
+                        <a href="#" className="text-purple-600 hover:underline">
+                          Download template
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </CardContent>
+            </Card>
+
+            {/* Event Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select defaultValue="draft">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                        Draft
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="published">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Published
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        {/* End of Highlights Form field */}
-        <div className="form-control grid gap-y-3">
-          <button className="px-2 py-4 bg-primary font-poppins-bold text-lg text-white rounded-3xl">
-            Create Event
-          </button>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between mt-8 pt-6 border-t">
+          <Button variant="outline">
+            <Eye className="mr-2 h-4 w-4" />
+            Preview
+          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline">
+              <Save className="mr-2 h-4 w-4" />
+              Save Draft
+            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-700 px-8">
+              Create Event
+            </Button>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
-
 export default CreateEventForm;

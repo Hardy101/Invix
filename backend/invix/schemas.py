@@ -78,6 +78,7 @@ class EventBase(BaseModel):
 # Model for Event Response (for viewing)
 class EventResponse(EventBase):
     id: int
+    time: str
 
     class Config:
         from_attributes = True  # To support SQLAlchemy models directly

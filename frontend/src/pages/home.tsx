@@ -71,7 +71,7 @@ const Home: React.FC = () => {
   }, [fetchEvents]);
 
   return (
-    <div className="relative h-dvh pb-32">
+    <div className="relative h-dvh pb-32 bg-gray-50/50">
       {/* Floating Elements */}
       <CreateEventForm
         isCreateEventActive={isCreateEventActive}
@@ -215,7 +215,7 @@ const Home: React.FC = () => {
                           </div>
                           <div className="flex items-center">
                             <Clock className="mr-1 h-3 w-3" />
-                            {event.date}
+                            {event.time}
                           </div>
                           <div className="flex items-center">
                             <MapPin className="mr-1 h-3 w-3" />
@@ -244,7 +244,7 @@ const Home: React.FC = () => {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start bg-primary/90 hover:bg-primary">
+                  <Button onClick={() => setIsCreateEventActive(true)} className="w-full justify-start bg-primary/90 hover:bg-primary">
                     <Plus className="mr-2 h-4 w-4" />
                     Create New Event
                   </Button>

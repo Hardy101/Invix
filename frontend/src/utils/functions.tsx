@@ -48,7 +48,6 @@ export const copyToClipboard = (target: HTMLElement | null): Promise<void> => {
 // Function to fetch event deta
 export const fetchEventDetails = async (
   id: string,
-
   setGuestList: React.Dispatch<
     React.SetStateAction<Array<{ id: string; name: string; tags: string }>>
   >,
