@@ -244,11 +244,18 @@ const Home: React.FC = () => {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button onClick={() => setIsCreateEventActive(true)} className="w-full justify-start bg-primary/90 hover:bg-primary">
+                  <Button
+                    onClick={() => setIsCreateEventActive(true)}
+                    className="w-full justify-start bg-primary/90 hover:bg-primary"
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Create New Event
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    onClick={() => navigate("/analytics")}
+                    variant="outline"
+                    className="w-full justify-start"
+                  >
                     <BarChart3 className="mr-2 h-4 w-4" />
                     View Analytics
                   </Button>
