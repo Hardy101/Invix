@@ -88,7 +88,7 @@ const Home: React.FC = () => {
 
       <div className="body mt-10 font-poppins px-4 md:px-8">
         {/* Welcome */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap gap-y-4 items-center justify-between">
           <div>
             <h1 className="text-3xl font-poppins-bold text-gray-900">
               Welcome back, John!

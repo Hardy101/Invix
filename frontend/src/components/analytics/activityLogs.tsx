@@ -99,8 +99,8 @@ const ActivityLog = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-wrap gap-y-4 items-center justify-between">
+          <div className="flex flex-col gap-y-2">
             <CardTitle>Recent Activity Logs</CardTitle>
             <CardDescription>
               Latest guest check-in and check-out activities

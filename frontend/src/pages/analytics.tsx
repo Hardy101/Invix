@@ -49,13 +49,13 @@ export default function Analytics() {
       />
       {/* Header */}
       <div className="border-b bg-white">
-        <div className="flex h-16 items-center px-6">
+        <div className="flex flex-col gap-y-4 items-center py-2 px-6 md:flex-row">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-poppins-bold">
               Guest Management Analytics
             </h1>
           </div>
-          <div className="ml-auto flex items-center space-x-4">
+          <div className="flex items-center space-x-4 md:ml-auto">
             <Button variant="outline" size="sm">
               <Upload className="mr-2 h-4 w-4" />
               Export
