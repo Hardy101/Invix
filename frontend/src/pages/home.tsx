@@ -1,13 +1,5 @@
+import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-
-// Local imports
-import Overlay from "../components/overlay";
-import { useEventStore } from "../store/useEventsStore";
-import LoadingComponent from "../components/loading";
-import Navbar from "../components/navbar";
-import EventList from "../components/homePage/EvenList";
-import TopNavigation from "../components/homePage/topNavigation";
-import CreateEventForm from "../components/homePage/createEventForm";
 import {
   BarChart3,
   Calendar,
@@ -19,9 +11,11 @@ import {
   MoreHorizontal,
   Plus,
   Users,
+  Search,
 } from "lucide-react";
+
+// shadcn
 import { Input } from "../components/ui/input";
-import { Search } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -31,7 +25,14 @@ import {
   CardDescription,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { useNavigate } from "react-router";
+
+// Local imports
+import Overlay from "../components/overlay";
+import { useEventStore } from "../store/useEventsStore";
+import LoadingComponent from "../components/loading";
+import Navbar from "../components/navbar";
+import TopNavigation from "../components/homePage/topNavigation";
+import CreateEventForm from "../components/homePage/createEventForm";
 import { url } from "../constants/variables";
 
 const Home: React.FC = () => {
@@ -154,132 +155,145 @@ const Home: React.FC = () => {
         </div>
 
         {/* Upcoming events */}
-        <div className="grid gap-6 mt-8 lg:grid-cols-3">
-          {/* Upcoming Events */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Upcoming Events</CardTitle>
-                    <CardDescription>
-                      Your scheduled events for this month
-                    </CardDescription>
+        {isLoading ? (
+          <LoadingComponent />
+        ) : (
+          <div className="grid gap-6 mt-8 lg:grid-cols-3">
+            {/* Upcoming Events */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Upcoming Events</CardTitle>
+                      <CardDescription>
+                        Your scheduled events for this month
+                      </CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      View All
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View All
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {events.map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/event/${event.id}`)}
+                    >
+                      <div className="relative">
+                        <img
+                          src={`${url}/event/event-image/${event.id}`}
+                          alt={event.name}
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                        <Badge
+                          variant={"default"}
+                          className="absolute -top-2 -right-2 text-xs"
+                        >
+                          Published
+                        </Badge>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-900 truncate">
+                            {event.name}
+                          </h3>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                          <div className="flex items-center">
+                            <CalendarDays className="mr-1 h-3 w-3" />
+                            {event.date}
+                          </div>
+                          <div className="flex items-center">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {event.date}
+                          </div>
+                          <div className="flex items-center">
+                            <MapPin className="mr-1 h-3 w-3" />
+                            {event.location}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Users className="mr-1 h-3 w-3" />
+                            {event.expected_guests} attendees
+                          </div>
+                          <Badge variant="outline">party</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button className="w-full justify-start bg-primary/90 hover:bg-primary">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New Event
                   </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {events.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/event/${event.id}`)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={`${url}/event/event-image/${event.id}`}
-                        alt={event.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <Badge
-                        variant={"default"}
-                        className="absolute -top-2 -right-2 text-xs"
-                      >
-                        Published
-                      </Badge>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {event.name}
-                        </h3>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                        <div className="flex items-center">
-                          <CalendarDays className="mr-1 h-3 w-3" />
-                          {event.date}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {event.date}
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="mr-1 h-3 w-3" />
-                          {event.location}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Users className="mr-1 h-3 w-3" />
-                          {event.expected_guests} attendees
-                        </div>
-                        <Badge variant="outline">party</Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+                  <Button variant="outline" className="w-full justify-start">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    View Analytics
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Users className="mr-2 h-4 w-4" />
+                    Guest List
+                  </Button>
+                </CardContent>
+              </Card>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full justify-start bg-primary/90 hover:bg-primary">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Event
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  View Analytics
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
-                  Guest List
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>
-                  Latest updates from your events
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {activity.action}
-                      </p>
-                      <p className="text-sm text-gray-500">{activity.event}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs text-gray-400">{activity.time}</p>
-                        <p className="text-xs text-gray-500">{activity.user}</p>
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                  <CardDescription>
+                    Latest updates from your events
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-start space-x-3">
+                      <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">
+                          {activity.action}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {activity.event}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-gray-400">
+                            {activity.time}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {activity.user}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-        {isLoading ? <LoadingComponent /> : <EventList />}
+        )}
       </div>
     </div>
   );
