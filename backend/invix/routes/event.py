@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, status, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 import pandas as pd
 from io import BytesIO
@@ -8,10 +9,10 @@ import uuid
 import os
 import logging
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Local imports
-from models import Event, Guest as GuestModel
+from models import Event, Guest as GuestModel, ActivityLog
 from schemas import (
     PublicUser,
     EventUpdate,
@@ -28,6 +29,7 @@ from operations.functions import (
     add_guests_to_event,
     fetch_current_user,
 )
+
 # from ..models import Event, Guest as GuestModel
 # from ..schemas import (
 #     PublicUser,
@@ -357,3 +359,123 @@ def view_qrcode(uuid: str, db: Session = Depends(get_db)):
         print(f"Error occurred: {str(e)}")
         print(f"Error type: {type(e)}")
         raise HTTPException(status_code=404, detail="Guest not found")
+
+
+@router.get("/{event_id}/analytics")
+def get_event_analytics(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
+    # Verify event exists and belongs to user
+    event = (
+        db.query(ActivityLog)
+        .filter(Event.id == event_id, Event.created_by == current_user.id)
+        .first()
+    )
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    # Get guest status counts
+    checked_in = (
+        db.query(func.count(ActivityLog.id))
+        .filter(ActivityLog.event_id == event_id, ActivityLog.status == "checked_in")
+        .scalar()
+        or 0
+    )
+
+    checked_out = (
+        db.query(func.count(ActivityLog.id))
+        .filter(ActivityLog.event_id == event_id, ActivityLog.status == "checked_out")
+        .scalar()
+        or 0
+    )
+
+    pending = (
+        db.query(func.count(ActivityLog.id))
+        .filter(ActivityLog.event_id == event_id, ActivityLog.status == "pending")
+        .scalar()
+        or 0
+    )
+
+    # Get check-in times by hour
+    check_in_times = []
+    for hour in range(9, 17):  # 9 AM to 4 PM
+        hour_start = datetime.now().replace(
+            hour=hour, minute=0, second=0, microsecond=0
+        )
+        hour_end = hour_start + timedelta(hours=1)
+
+        count = (
+            db.query(func.count(ActivityLog.id))
+            .filter(
+                ActivityLog.event_id == event_id,
+                ActivityLog.status == "checked_in",
+                ActivityLog.check_in_time >= hour_start,
+                ActivityLog.check_in_time < hour_end,
+            )
+            .scalar()
+            or 0
+        )
+
+        check_in_times.append(
+            {"hour": f"{hour} AM" if hour < 12 else f"{hour - 12} PM", "count": count}
+        )
+
+    return {
+        "checkedIn": checked_in,
+        "checkedOut": checked_out,
+        "pending": pending,
+        "checkInTimes": check_in_times,
+    }
+
+
+@router.post("/check-in/{uuid}")
+def check_in_guest(
+    uuid: str,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
+    guest = db.query(GuestModel).filter(GuestModel.qr_token == uuid).first()
+    if not guest:
+        raise HTTPException(status_code=404, detail="Guest not found")
+
+    # Create activity log entry
+    activity_log = ActivityLog(
+        guest_id=guest.id,
+        event_id=guest.event_id,
+        name=guest.name,
+        status="checked_in",
+        check_in_time=datetime.now(),
+        method="qr_code",
+    )
+    db.add(activity_log)
+    db.commit()
+
+    return {"message": f"Guest {guest.name} checked in successfully"}
+
+
+@router.post("/check-out/{uuid}")
+def check_out_guest(
+    uuid: str,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
+    guest = db.query(GuestModel).filter(GuestModel.qr_token == uuid).first()
+    if not guest:
+        raise HTTPException(status_code=404, detail="Guest not found")
+
+    # Create activity log entry
+    activity_log = ActivityLog(
+        guest_id=guest.id,
+        event_id=guest.event_id,
+        name=guest.name,
+        status="checked_out",
+        check_out_time=datetime.now(),
+        method="qr_code",
+    )
+    db.add(activity_log)
+    db.commit()
+
+    return {"message": f"Guest {guest.name} checked out successfully"}

@@ -24,25 +24,19 @@ import {
   CardTitle,
 } from "../ui/card";
 
-const Charts = () => {
-  // Sample data for pie chart
-  const guestStatusData = [
-    { name: "Checked In", value: 145, fill: "#2a9d90" },
-    { name: "Checked Out", value: 89, fill: "hsl(12 76% 61%)" },
-    { name: "Pending", value: 23, fill: "hsl(197 37% 24%)" },
-  ];
+interface ChartsProps {
+  guestStatusData: {
+    name: string;
+    value: number;
+    fill: string;
+  }[];
+  checkinData: {
+    time: string;
+    checkins: number;
+  }[];
+}
 
-  // Sample data for bar chart
-  const checkinData = [
-    { time: "9 AM", checkins: 12 },
-    { time: "10 AM", checkins: 25 },
-    { time: "11 AM", checkins: 18 },
-    { time: "12 PM", checkins: 32 },
-    { time: "1 PM", checkins: 28 },
-    { time: "2 PM", checkins: 15 },
-    { time: "3 PM", checkins: 22 },
-    { time: "4 PM", checkins: 19 },
-  ];
+const Charts = ({ guestStatusData, checkinData }: ChartsProps) => {
   return (
     <>
       {/* Charts Section */}

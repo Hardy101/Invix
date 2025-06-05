@@ -8,7 +8,6 @@ import {
   Eye,
   Filter,
   MapPin,
-  MoreHorizontal,
   Plus,
   Users,
   Search,
@@ -38,6 +37,7 @@ import { url } from "../constants/variables";
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { events, isLoading, fetchEvents } = useEventStore();
+
   const [isCreateEventActive, setIsCreateEventActive] = useState(false);
 
   const recentActivity = [
@@ -119,7 +119,7 @@ const Home: React.FC = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{events.length}</div>
               <p className="text-xs text-muted-foreground">
                 +2 from last month
               </p>
@@ -133,7 +133,12 @@ const Home: React.FC = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">587</div>
+              <div className="text-2xl font-bold">
+                {events.reduce(
+                  (total, event) => total + (event.expected_guests || 0),
+                  0
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +23% from last month
               </p>
@@ -200,13 +205,6 @@ const Home: React.FC = () => {
                           <h3 className="font-semibold text-gray-900 truncate">
                             {event.name}
                           </h3>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
                         </div>
                         <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                           <div className="flex items-center">

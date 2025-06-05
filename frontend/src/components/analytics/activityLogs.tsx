@@ -19,57 +19,21 @@ import { Input } from "../ui/input";
 
 import { Search, Filter } from "lucide-react";
 
-const ActivityLog = () => {
-  const activityLogs = [
-    {
-      id: 1,
-      timestamp: "2024-01-15 14:32:15",
-      guestName: "John Smith",
-      action: "Checked In",
-      method: "qrcode",
-      qrCode: "QR001234",
-    },
-    {
-      id: 2,
-      timestamp: "2024-01-15 14:28:42",
-      guestName: "Sarah Johnson",
-      action: "Checked Out",
-      method: "qrcode",
-      qrCode: "QR001235",
-    },
-    {
-      id: 3,
-      timestamp: "2024-01-15 14:25:18",
-      guestName: "Mike Davis",
-      action: "Checked In",
-      method: "qrcode",
-      qrCode: "QR001236",
-    },
-    {
-      id: 4,
-      timestamp: "2024-01-15 14:22:05",
-      guestName: "Emily Wilson",
-      action: "Registration",
-      method: "qrcode",
-      qrCode: "QR001237",
-    },
-    {
-      id: 5,
-      timestamp: "2024-01-15 14:18:33",
-      guestName: "David Brown",
-      action: "Checked In",
-      method: "qrcode",
-      qrCode: "QR001238",
-    },
-    {
-      id: 6,
-      timestamp: "2024-01-15 14:15:27",
-      guestName: "Lisa Anderson",
-      action: "Checked Out",
-      method: "qrcode",
-      qrCode: "QR001239",
-    },
-  ];
+interface logs {
+  id: number;
+  timestamp: string;
+  guestName: string;
+  action: string;
+  method: string;
+  qrCode: string;
+}
+
+interface TableProps {
+  logs: logs[];
+}
+
+const ActivityLog: React.FC<TableProps> = ({ logs }) => {
+ 
 
   const getStatusBadge = (action: string) => {
     switch (action) {
@@ -133,7 +97,7 @@ const ActivityLog = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activityLogs.map((log) => (
+            {logs.map((log) => (
               <TableRow key={log.id}>
                 <TableCell className="font-mono text-sm">
                   {log.timestamp}

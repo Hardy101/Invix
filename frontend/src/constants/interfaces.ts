@@ -32,3 +32,4 @@ export interface EventModalProps {
   setGuest: React.Dispatch<React.SetStateAction<Guest>>;
   setFormData: React.Dispatch<React.SetStateAction<EventFormData>>;
 }
+

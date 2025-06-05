@@ -5,6 +5,7 @@ from datetime import datetime
 
 # Local imports
 from database import Base
+
 # from .database import Base
 
 
@@ -58,6 +59,7 @@ class ActivityLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     guest_id = Column(Integer, ForeignKey("guests.id"), nullable=False)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    timestamp = Column(DateTime, default=datetime.now)
     name = Column(VARCHAR, nullable=False)
     check_in_time = Column(DateTime, default=datetime.now)
     check_out_time = Column(DateTime, default=datetime.now)
