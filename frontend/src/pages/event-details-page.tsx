@@ -31,14 +31,18 @@ import {
   MessageSquare,
   Star,
   X,
+  Delete,
+  Trash,
 } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { EventFormData } from "../constants/interfaces";
 import { fetchEventDetails } from "../utils/functions";
 import { url } from "../constants/variables";
+import axios from "axios";
 
 const EventDetailsPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [eventDetails, setEventDetails] = useState<EventFormData>({
     name: "",
     date: "",
@@ -51,6 +55,45 @@ const EventDetailsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarView, setSidebarView] = useState<"guests" | "edit">("guests");
 
+  const updateEventDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) {
+      console.error("No event ID provided");
+      return;
+    }
+    try {
+      const response = await axios.put(
+        `${url}/event/update/${id}`,
+        eventDetails,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.status === 200) {
+        fetchEventDetails(id, setGuestList, setEventDetails);
+        setIsSidebarOpen(false);
+      } else {
+        console.error("Error updating event:", response.data);
+      }
+    } catch (err: any) {
+      console.error(`Error: ${err}`);
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    try {
+      const response = await axios.delete(`${url}/event/delete/${id}`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        navigate("/home");
+      } else {
+        console.error("Error deleting event:", response.data);
+      }
+    } catch (err: any) {
+      console.error(`Error: ${err}`);
+    }
+  };
   const eventData = {
     title: "Avantgardey",
     location: "Tokyo International Forum, Tokyo",
@@ -92,9 +135,11 @@ const EventDetailsPage = () => {
   ];
 
   useEffect(() => {
-    if (id) {
-      fetchEventDetails(id, setGuestList, setEventDetails);
+    if (!id) {
+      console.error("No event ID provided");
+      return;
     }
+    fetchEventDetails(id, setGuestList, setEventDetails);
   }, [id]);
 
   return (
@@ -142,6 +187,10 @@ const EventDetailsPage = () => {
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit Event
+            </Button>
+            <Button size="sm" onClick={handleDeleteEvent} variant="destructive">
+              <Trash className="mr-2 h-4 w-4" />
+              Delete Event
             </Button>
           </div>
         </div>
@@ -217,7 +266,8 @@ const EventDetailsPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              // Update event form
+              <form onSubmit={updateEventDetails} className="space-y-4">
                 <div className="space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Event Name</label>
@@ -295,7 +345,7 @@ const EventDetailsPage = () => {
                 <div className="pt-4 border-t">
                   <Button className="w-full">Save Changes</Button>
                 </div>
-              </div>
+              </form>
             )}
           </div>
         </div>
@@ -317,6 +367,11 @@ const EventDetailsPage = () => {
                         src={`${url}/event/event-image/${id}`}
                         alt={`image of ${eventDetails.name} Event`}
                         className="w-full h-64 object-cover rounded-t-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null; // Prevent infinite loop
+                          target.src = "/placeholder-event.jpg"; // Use a placeholder image
+                        }}
                       />
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-green-600 hover:bg-green-600">

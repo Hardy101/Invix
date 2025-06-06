@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from pydantic import BaseModel
+import os
+
 
 # Local imports
 from database import SessionLocal
@@ -80,6 +82,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/google")
 def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
+    print(os.getenv("GOOGLE_CLIENT_ID"))
     if not payload.token:
         raise HTTPException(status_code=400, detail="Google token is required")
 
@@ -87,7 +90,7 @@ def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
         idinfo = id_token.verify_oauth2_token(
             payload.token,
             requests.Request(),
-            "929640660775-lsov2dealio9dfbp65snpehhsnndr14k.apps.googleusercontent.com",
+            os.getenv("GOOGLE_CLIENT_ID"),
         )
 
         # Use the email and name from the request data

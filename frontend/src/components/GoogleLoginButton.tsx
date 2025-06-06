@@ -40,6 +40,8 @@ const GoogleAuthButton = () => {
       onSuccess={handleSuccess}
       onError={() => console.log("Login Failed")}
       shape="pill"
+      width={"100%"}
+      logo_alignment="left"
     />
   );
 };

@@ -187,6 +187,9 @@ def get_event_image(event_id: int, db: Session = Depends(get_db)):
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
 
+    if not event.image_url:
+        raise HTTPException(status_code=404, detail="No image available for this event")
+
     image_path = os.path.join("static/events", event.image_url)
     if not os.path.exists(image_path):
         raise HTTPException(status_code=404, detail="Image file not found")
@@ -263,7 +266,11 @@ def update_event(event_id: int, updated: EventUpdate, db: Session = Depends(get_
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
 
-    for key, value in updated.model_dump().items():
+    # Get the update data, excluding None values
+    update_data = {k: v for k, v in updated.model_dump().items() if v is not None}
+
+    # Update the event with non-None values
+    for key, value in update_data.items():
         setattr(event, key, value)
 
     db.commit()
@@ -369,7 +376,7 @@ def get_event_analytics(
 ):
     # Verify event exists and belongs to user
     event = (
-        db.query(ActivityLog)
+        db.query(Event)
         .filter(Event.id == event_id, Event.created_by == current_user.id)
         .first()
     )
@@ -392,12 +399,14 @@ def get_event_analytics(
         or 0
     )
 
-    pending = (
-        db.query(func.count(ActivityLog.id))
-        .filter(ActivityLog.event_id == event_id, ActivityLog.status == "pending")
+    # Calculate pending guests (total guests minus checked in and checked out)
+    total_guests = (
+        db.query(func.count(GuestModel.id))
+        .filter(GuestModel.event_id == event_id)
         .scalar()
         or 0
     )
+    pending = total_guests - checked_in - checked_out
 
     # Get check-in times by hour
     check_in_times = []
@@ -427,6 +436,7 @@ def get_event_analytics(
         "checkedIn": checked_in,
         "checkedOut": checked_out,
         "pending": pending,
+        "totalGuests": total_guests,
         "checkInTimes": check_in_times,
     }
 

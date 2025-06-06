@@ -185,7 +185,7 @@ const Home: React.FC = () => {
                     <div
                       key={event.id}
                       className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/event/${event.id}`)}
+                      onClick={() => navigate(`/eventdetailspage/${event.id}`)}
                     >
                       <div className="relative">
                         <img

@@ -9,16 +9,21 @@ from typing import List
 import logging
 from fastapi.staticfiles import StaticFiles
 import os
+from dotenv import load_dotenv
 
 # Local imports
 from routes import auth, event
 from models import User as UserModel
 from schemas import PublicUser
 from database import get_db, init_db
+
 # from .routes import auth, event
 # from .models import User as UserModel
 # from .schemas import PublicUser
 # from .database import get_db, init_db
+
+# Load environment variables
+load_dotenv()
 
 
 @asynccontextmanager
