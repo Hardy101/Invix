@@ -42,7 +42,6 @@ function App() {
                   </PublicRoute>
                 }
               />
-              <Route path="/eventdetailspage/" element={<EventDetailsPage />} />
 
               <Route element={<PrivateRoute />}>
                 <Route path="/home" element={<Home />} />
@@ -50,6 +49,10 @@ function App() {
                 <Route path="/scan" element={<Scan />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/analytics" element={<Analytics />} />
+                <Route
+                  path="/eventdetailspage/:id"
+                  element={<EventDetailsPage />}
+                />
               </Route>
             </Routes>
           </BrowserRouter>

@@ -89,7 +89,7 @@ const EventInfo: React.FC<EventInfoProps> = ({ setGuestList }) => {
     }
   };
 
-  // Load Event Details on initial load
+  // Load Event Details on initial load 
   useEffect(() => {
     if (id) {
       fetchEventDetails(id, setGuestList, setFormData);
