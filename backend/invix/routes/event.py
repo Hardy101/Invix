@@ -350,21 +350,45 @@ def view_qrcode(uuid: str, db: Session = Depends(get_db)):
 
 
 @router.get("/readqrcode/{uuid}")
-def view_qrcode(uuid: str, db: Session = Depends(get_db)):
+def read_qrcode(uuid: str, db: Session = Depends(get_db)):
     try:
-        print(f"Looking up QR code for UUID: {uuid}")
         guest = db.query(GuestModel).filter(GuestModel.qr_token == uuid).first()
-        print(f"Query result: {guest}")
 
         if not guest:
-            print(f"No guest found for UUID: {uuid}")
             raise HTTPException(status_code=404, detail="Guest not found")
 
-        print(f"Found guest: {guest.name}")
-        return {"name": guest.name}
+        # Get the event details
+        event = db.query(Event).filter(Event.id == guest.event_id).first()
+
+        # Get check-in status from activity log
+        activity_log = (
+            db.query(ActivityLog)
+            .filter(
+                ActivityLog.guest_id == guest.id, ActivityLog.event_id == guest.event_id
+            )
+            .order_by(ActivityLog.check_in_time.desc())
+            .first()
+        )
+
+        status = "pending"
+        if activity_log:
+            status = activity_log.status
+
+        return {
+            "name": guest.name,
+            "email": guest.email,
+            "tags": guest.tags,
+            "event": {
+                "id": event.id,
+                "name": event.name,
+                "date": event.date,
+                "location": event.location,
+            },
+            "status": status,
+            "lastActivity": activity_log.check_in_time if activity_log else None,
+            "qr_token": guest.qr_token,
+        }
     except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        print(f"Error type: {type(e)}")
         raise HTTPException(status_code=404, detail="Guest not found")
 
 
@@ -449,7 +473,35 @@ def check_in_guest(
 ):
     guest = db.query(GuestModel).filter(GuestModel.qr_token == uuid).first()
     if not guest:
-        raise HTTPException(status_code=404, detail="Guest not found")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "GUEST_NOT_FOUND",
+                "message": "Guest not found",
+                "qr_token": uuid
+            }
+        )
+
+    # Check if guest is already checked in
+    latest_activity = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.guest_id == guest.id, ActivityLog.event_id == guest.event_id
+        )
+        .order_by(ActivityLog.check_in_time.desc())
+        .first()
+    )
+
+    if latest_activity and latest_activity.status == "checked_in":
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "ALREADY_CHECKED_IN",
+                "message": f"{guest.name} is already checked in",
+                "guest_name": guest.name,
+                "last_check_in": latest_activity.check_in_time.isoformat() if latest_activity.check_in_time else None
+            }
+        )
 
     # Create activity log entry
     activity_log = ActivityLog(
@@ -463,7 +515,12 @@ def check_in_guest(
     db.add(activity_log)
     db.commit()
 
-    return {"message": f"Guest {guest.name} checked in successfully"}
+    return {
+        "message": f"Guest {guest.name} checked in successfully",
+        "status": "success",
+        "guest_name": guest.name,
+        "check_in_time": activity_log.check_in_time.isoformat()
+    }
 
 
 @router.post("/check-out/{uuid}")

@@ -139,7 +139,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   };
 
   const [highlights, setHighlights] = useState([{ id: 1, text: "" }]);
-  const [guestList, setGuestList] = useState<File | null>(null);
 
   const addHighlight = () => {
     setHighlights([...highlights, { id: Date.now(), text: "" }]);
@@ -184,6 +183,13 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit}>
+          {formError && (
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+              <p>{formError}</p>
+            </div>
+          )}
+
+          {/* Main Content */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Main Form */}
             <div className="lg:col-span-2 space-y-6">
@@ -393,6 +399,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                           className="w-full h-32 object-cover rounded-lg"
                         />
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           onClick={() =>
@@ -449,9 +456,12 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
                           {files.guest_list.name}
                         </p>
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setGuestList(null)}
+                          onClick={() =>
+                            setFiles({ ...files, guest_list: undefined })
+                          }
                         >
                           Remove File
                         </Button>

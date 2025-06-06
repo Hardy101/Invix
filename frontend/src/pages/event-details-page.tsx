@@ -31,7 +31,6 @@ import {
   MessageSquare,
   Star,
   X,
-  Delete,
   Trash,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -434,23 +433,23 @@ const EventDetailsPage = () => {
               <div className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">
-                      Registration Status
+                    <CardTitle className="font-poppins-bold text-lg">
+                      Analytics Status
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Registered</span>
+                        <span>checked-in</span>
                         <span>
                           {eventData.registeredGuests.toLocaleString()} /{" "}
-                          {eventData.totalCapacity.toLocaleString()}
+                          {eventDetails.expected_guests.toLocaleString()}
                         </span>
                       </div>
                       <Progress
                         value={
                           (eventData.registeredGuests /
-                            eventData.totalCapacity) *
+                            eventDetails.expected_guests) *
                           100
                         }
                         className="h-2"

@@ -14,6 +14,7 @@ import { AuthProvider } from "./context/AuthProvider";
 import ToastNotification from "./components/toast";
 import Analytics from "./pages/analytics";
 import EventDetailsPage from "./pages/event-details-page";
+import QRCheckin from "./pages/qr-checkin-new";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/event/:id" element={<EventDetails />} />
                 <Route path="/scan" element={<Scan />} />
+                <Route path="/qrcheckin" element={<QRCheckin />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route
