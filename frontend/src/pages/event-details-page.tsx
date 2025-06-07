@@ -38,6 +38,7 @@ import { EventFormData } from "../constants/interfaces";
 import { fetchEventDetails } from "../utils/functions";
 import { url } from "../constants/variables";
 import axios from "axios";
+import GuestSearch from "../components/guest-search";
 
 const EventDetailsPage = () => {
   const { id } = useParams();
@@ -240,13 +241,13 @@ const EventDetailsPage = () => {
           <div className="p-4">
             {sidebarView === "guests" ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <input
-                    type="text"
-                    placeholder="Search guests..."
-                    className="w-full px-3 py-2 border rounded-md"
-                  />
-                </div>
+                <GuestSearch
+                  className="mb-4"
+                  onGuestSelect={(guest) => {
+                    // Handle guest selection if needed
+                    console.log("Selected guest:", guest);
+                  }}
+                />
                 <div className="space-y-2 max-h-[calc(100vh-12rem)] overflow-y-auto">
                   {guestList.map((guest, index) => (
                     <div

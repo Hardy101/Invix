@@ -111,7 +111,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         const eventId = response.data.id;
         resetForm();
         setIsModalActive(false);
-        navigate(`/event/${eventId}`);
+        navigate(`/eventdetailspage/${eventId}`);
         refreshEvents();
       }
     } catch (err: any) {

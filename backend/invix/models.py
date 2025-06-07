@@ -48,6 +48,7 @@ class Guest(Base):
     qr_path = Column(String, default="null", unique=True)
 
     event = relationship("Event", back_populates="guests")
+    activitylogs = relationship("ActivityLog", back_populates="guest")
 
     def __repr__(self):
         return f"<Guest(id={self.id}, name={self.name}, tags={self.tags})>"
@@ -59,11 +60,11 @@ class ActivityLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     guest_id = Column(Integer, ForeignKey("guests.id"), nullable=False)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    timestamp = Column(DateTime, default=datetime.now)
     name = Column(VARCHAR, nullable=False)
-    check_in_time = Column(DateTime, default=datetime.now)
-    check_out_time = Column(DateTime, default=datetime.now)
     status = Column(String, default="pending")
     method = Column(String)
+    check_in_time = Column(DateTime, nullable=True)
+    check_out_time = Column(DateTime, nullable=True)
 
     event = relationship("Event", back_populates="activitylogs")
+    guest = relationship("Guest", back_populates="activitylogs")

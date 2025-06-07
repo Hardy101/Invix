@@ -478,8 +478,8 @@ def check_in_guest(
             detail={
                 "error": "GUEST_NOT_FOUND",
                 "message": "Guest not found",
-                "qr_token": uuid
-            }
+                "qr_token": uuid,
+            },
         )
 
     # Check if guest is already checked in
@@ -499,8 +499,12 @@ def check_in_guest(
                 "error": "ALREADY_CHECKED_IN",
                 "message": f"{guest.name} is already checked in",
                 "guest_name": guest.name,
-                "last_check_in": latest_activity.check_in_time.isoformat() if latest_activity.check_in_time else None
-            }
+                "last_check_in": (
+                    latest_activity.check_in_time.isoformat()
+                    if latest_activity.check_in_time
+                    else None
+                ),
+            },
         )
 
     # Create activity log entry
@@ -519,7 +523,7 @@ def check_in_guest(
         "message": f"Guest {guest.name} checked in successfully",
         "status": "success",
         "guest_name": guest.name,
-        "check_in_time": activity_log.check_in_time.isoformat()
+        "check_in_time": activity_log.check_in_time.isoformat(),
     }
 
 
@@ -532,6 +536,28 @@ def check_out_guest(
     guest = db.query(GuestModel).filter(GuestModel.qr_token == uuid).first()
     if not guest:
         raise HTTPException(status_code=404, detail="Guest not found")
+
+    # Get the latest check-in activity
+    latest_activity = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.guest_id == guest.id,
+            ActivityLog.event_id == guest.event_id,
+            ActivityLog.status == "checked_in",
+        )
+        .order_by(ActivityLog.check_in_time.desc())
+        .first()
+    )
+
+    if not latest_activity:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "NOT_CHECKED_IN",
+                "message": f"{guest.name} is not checked in",
+                "guest_name": guest.name,
+            },
+        )
 
     # Create activity log entry
     activity_log = ActivityLog(
@@ -546,3 +572,24 @@ def check_out_guest(
     db.commit()
 
     return {"message": f"Guest {guest.name} checked out successfully"}
+
+
+@router.get("/search-guest", response_model=List[GuestResponse])
+def search_guest(
+    query: str,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
+    # Search for guests where name, email, or tags contain the query string
+    guests = (
+        db.query(GuestModel)
+        .join(Event)
+        .filter(Event.created_by == current_user.id)
+        .filter(
+            (GuestModel.name.ilike(f"%{query}%"))
+            | (GuestModel.email.ilike(f"%{query}%"))
+            | (GuestModel.tags.ilike(f"%{query}%"))
+        )
+        .all()
+    )
+    return guests

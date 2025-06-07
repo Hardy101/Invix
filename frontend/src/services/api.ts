@@ -2,6 +2,7 @@ import axios from "axios";
 import { url } from "../constants/variables";
 
 export interface Guest {
+  id: number;
   name: string;
   email: string;
   status: string;
