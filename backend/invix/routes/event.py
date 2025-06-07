@@ -281,39 +281,56 @@ def update_event(event_id: int, updated: EventUpdate, db: Session = Depends(get_
 # Delete an event by ID
 @router.delete("/delete/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(get_db)):
-    event = db.query(Event).filter(Event.id == event_id).first()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+    try:
+        # Get the event
+        event = db.query(Event).filter(Event.id == event_id).first()
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
 
-    # Delete event image if it exists
-    if event.image_url and event.image_url != "default_event.jpg":
-        image_path = os.path.join("static/events", event.image_url)
-        if os.path.exists(image_path):
-            try:
-                os.remove(image_path)
-            except Exception as e:
-                logging.error(f"Error deleting event image: {str(e)}")
+        # Delete event image if it exists
+        if event.image_url and event.image_url != "default_event.jpg":
+            image_path = os.path.join("static/events", event.image_url)
+            if os.path.exists(image_path):
+                try:
+                    os.remove(image_path)
+                except Exception as e:
+                    logging.error(f"Error deleting event image: {str(e)}")
 
-    # Get all guests associated with this event
-    guests = db.query(GuestModel).filter(GuestModel.event_id == event_id).all()
+        # Get all guests associated with this event
+        guests = db.query(GuestModel).filter(GuestModel.event_id == event_id).all()
 
-    # Delete QR code files for all guests
-    for guest in guests:
-        if guest.qr_path and os.path.exists(guest.qr_path):
-            try:
-                os.remove(guest.qr_path)
-            except Exception as e:
-                logging.error(
-                    f"Error deleting QR code file for guest {guest.id}: {str(e)}"
-                )
+        # Delete QR code files for all guests
+        for guest in guests:
+            if guest.qr_path and os.path.exists(guest.qr_path):
+                try:
+                    os.remove(guest.qr_path)
+                except Exception as e:
+                    logging.error(
+                        f"Error deleting QR code file for guest {guest.id}: {str(e)}"
+                    )
 
-    # Delete all guests associated with this event
-    db.query(GuestModel).filter(GuestModel.event_id == event_id).delete()
+        # Create a new session for deleting activity logs
+        activity_logs = (
+            db.query(ActivityLog).filter(ActivityLog.event_id == event_id).all()
+        )
+        for log in activity_logs:
+            db.delete(log)
+        db.commit()
 
-    # Delete the event
-    db.delete(event)
-    db.commit()
-    return {"message": "Event and all associated guests deleted"}
+        # Create a new session for deleting guests
+        for guest in guests:
+            db.delete(guest)
+        db.commit()
+
+        # Finally delete the event
+        db.delete(event)
+        db.commit()
+
+        return {"message": "Event and all associated data deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error deleting event: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete event: {str(e)}")
 
 
 # Delete a guest by ID

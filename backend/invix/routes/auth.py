@@ -5,6 +5,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from pydantic import BaseModel
 import os
+import logging
+import time
+import asyncio
 
 
 # Local imports
@@ -81,21 +84,49 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.post("/google")
-def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
-    print(os.getenv("GOOGLE_CLIENT_ID"))
+async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
     if not payload.token:
         raise HTTPException(status_code=400, detail="Google token is required")
 
     try:
-        idinfo = id_token.verify_oauth2_token(
-            payload.token,
-            requests.Request(),
-            os.getenv("GOOGLE_CLIENT_ID"),
-        )
+        # Get the client ID from environment variable
+        client_id = os.getenv("GOOGLE_CLIENT_ID")
+        if not client_id:
+            raise HTTPException(
+                status_code=500, detail="Google client ID not configured"
+            )
 
-        # Use the email and name from the request data
-        user_email = idinfo["email"]
-        user_name = idinfo.get("name")
+        # Verify the token with clock skew tolerance
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                payload.token,
+                requests.Request(),
+                client_id,
+                clock_skew_in_seconds=10,  # Allow 10 seconds of clock skew
+            )
+        except ValueError as e:
+            if "Token used too early" in str(e):
+                # If token is too early, wait a moment and try again
+                await asyncio.sleep(1)
+                idinfo = id_token.verify_oauth2_token(
+                    payload.token,
+                    requests.Request(),
+                    client_id,
+                    clock_skew_in_seconds=10,
+                )
+            else:
+                raise
+
+        # Extract user information
+        user_email = idinfo.get("email")
+        user_name = idinfo.get(
+            "name", user_email.split("@")[0]
+        )  # Use email username if name not provided
+
+        if not user_email:
+            raise HTTPException(
+                status_code=400, detail="Invalid token: email not found"
+            )
 
         # Check if user exists
         db_user = db.query(User).filter(User.email == user_email).first()
@@ -125,8 +156,12 @@ def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
         )
         return response
 
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Google token")
+    except ValueError as e:
+        logging.error(f"Google token verification failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid Google token: {str(e)}")
+    except Exception as e:
+        logging.error(f"Google authentication error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
 
 
 @router.get("/me", response_model=PublicUser)

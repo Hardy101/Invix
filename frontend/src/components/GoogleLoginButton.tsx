@@ -21,24 +21,39 @@ const GoogleAuthButton = () => {
           headers: { "Content-Type": "application/json" },
         }
       );
-      console.log(res.data);
-      login();
+
+      if (res.data) {
+        login();
+        useToastStore.getState().setToastState({
+          isToastActive: true,
+          type: "success",
+          text: "Authentication successful",
+          subtext: "You have been successfully logged in to your account.",
+        });
+        navigate("/home");
+      }
+    } catch (err: any) {
+      console.error("Login failed:", err);
       useToastStore.getState().setToastState({
         isToastActive: true,
-        type: "success",
-        text: "Authentication successful",
-        subtext: "You have been successfully logged in to your account.",
+        type: "failure",
+        text: "Authentication failed",
+        subtext: err.response?.data?.detail || "Please try again later.",
       });
-      navigate("/home");
-    } catch (err) {
-      console.error("Login failed:", err);
     }
   };
 
   return (
     <GoogleLogin
       onSuccess={handleSuccess}
-      onError={() => console.log("Login Failed")}
+      onError={() => {
+        useToastStore.getState().setToastState({
+          isToastActive: true,
+          type: "failure",
+          text: "Google login failed",
+          subtext: "Please try again or use email login.",
+        });
+      }}
       shape="pill"
     />
   );
