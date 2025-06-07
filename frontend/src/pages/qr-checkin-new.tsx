@@ -14,7 +14,7 @@ import {
   Home,
   RefreshCw,
 } from "lucide-react";
-import { Link } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import api, { Guest, EventStats, RecentCheckIn } from "../services/api";
 import { useToastStore } from "../store/useToastStore";
 import jsQR from "jsqr";
@@ -34,6 +34,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Alert, AlertDescription } from "../components/ui/alert";
 
 const QRCheckin = () => {
+  const { id } = useParams();
+  const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scannerActive, setScannerActive] = useState(false);
@@ -54,7 +56,8 @@ const QRCheckin = () => {
     const fetchInitialData = async () => {
       try {
         // TODO: Get event ID from context or URL params
-        const eventId = 1; // Replace with actual event ID
+        const eventId = Number(id);
+
         const analytics = await api.getEventAnalytics(eventId);
         setStats(analytics);
       } catch (error) {
@@ -295,10 +298,8 @@ const QRCheckin = () => {
       <header className="border-b bg-white">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Link to="/home">
+            <Button onClick={()=> navigate('/home')} variant="ghost" size="icon">
                 <Home className="h-5 w-5" />
-              </Link>
             </Button>
             <div>
               <h1 className="text-xl font-semibold">Guest Check-In</h1>

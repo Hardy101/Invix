@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Users, UserCheck, UserX, Clock, Upload } from "lucide-react";
+import { useNavigate } from "react-router";
+import { Users, UserCheck, UserX, Clock, Upload, Home } from "lucide-react";
 import axios from "axios";
 
 // shadcn
@@ -17,12 +18,11 @@ import {
 // local imports
 import Charts from "../components/analytics/charts";
 import ActivityLog from "../components/analytics/activityLogs";
-import TopNavigation from "../components/homePage/topNavigation";
 import { useEventStore } from "../store/useEventsStore";
 import { url } from "../constants/variables";
 
 export default function Analytics() {
-  const [isCreateEventActive, setIsCreateEventActive] = useState(false);
+  const navigate = useNavigate();
   const { events, fetchEvents } = useEventStore();
   const [selectedEvent, setSelectedEvent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,18 +31,7 @@ export default function Analytics() {
     checkedOut: 0,
     pending: 0,
     checkInTimes: [],
-  });
-  const [eventAnalytics, setEventAnalytics] = useState({
-    activityLog: [
-      {
-        id: 0,
-        timestamp: "",
-        guestName: "",
-        action: "",
-        method: "",
-        qrCode: "",
-      },
-    ],
+    activityLogs: [],
   });
 
   const eventOptions = events.map((event) => ({
@@ -53,12 +42,6 @@ export default function Analytics() {
   useEffect(() => {
     fetchEvents();
   }, []);
-
-  useEffect(() => {
-    if (selectedEvent) {
-      fetchEventAnalytics();
-    }
-  }, [selectedEvent]);
 
   const fetchEventAnalytics = async () => {
     setIsLoading(true);
@@ -71,6 +54,7 @@ export default function Analytics() {
       );
       if (response.status === 200) {
         setAnalytics(response.data);
+        console.log("Analytics data fetched successfully:", analytics.activityLogs);
       }
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -89,13 +73,32 @@ export default function Analytics() {
     { name: "Pending", value: analytics.pending, fill: "hsl(197 37% 24%)" },
   ];
 
+  useEffect(() => {
+    if (selectedEvent) {
+      fetchEventAnalytics();
+    }
+  }, [selectedEvent]);
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Navigation */}
-      <TopNavigation
-        isCreateEventActive={isCreateEventActive}
-        setIsCreateEventActive={setIsCreateEventActive}
-      />
+      <header className="border-b bg-white">
+        <div className="flex flex-col justify-between gap-y-4 px-6 py-3 md:flex-row md:items-center">
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => navigate("/home")}
+              variant="ghost"
+              size="icon"
+            >
+              <Home className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-poppins-medium">Event Analytics</h1>
+              <p className="text-sm text-gray-500">
+                Manage your event performance
+              </p>
+            </div>
+          </div>
+        </div>
+      </header>
       {/* Header */}
       <div className="border-b bg-white">
         <div className="flex flex-col gap-y-4 items-center py-2 px-6 md:flex-row">
@@ -219,7 +222,7 @@ export default function Analytics() {
             )}
 
             {/* Activity Logs Table */}
-            <ActivityLog logs={eventAnalytics.activityLog} />
+            <ActivityLog logs={analytics.activityLogs} />
           </>
         )}
       </div>

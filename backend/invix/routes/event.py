@@ -456,12 +456,42 @@ def get_event_analytics(
             {"hour": f"{hour} AM" if hour < 12 else f"{hour - 12} PM", "count": count}
         )
 
+    # Get activity logs for the event
+    activity_logs = (
+        db.query(ActivityLog)
+        .filter(ActivityLog.event_id == event_id)
+        .order_by(ActivityLog.check_in_time.desc())
+        .all()
+    )
+
+    # Format activity logs for response
+    formatted_logs = []
+    for log in activity_logs:
+        formatted_log = {
+            "guest_name": log.name,
+            "status": log.status,
+            "check_in_time": (
+                log.check_in_time.isoformat() if log.check_in_time else None
+            ),
+            "check_out_time": (
+                log.check_out_time.isoformat() if log.check_out_time else None
+            ),
+            "method": log.method,
+            "timestamp": (
+                log.check_in_time.isoformat()
+                if log.check_in_time
+                else log.check_out_time.isoformat() if log.check_out_time else None
+            ),
+        }
+        formatted_logs.append(formatted_log)
+
     return {
         "checkedIn": checked_in,
         "checkedOut": checked_out,
         "pending": pending,
         "totalGuests": total_guests,
         "checkInTimes": check_in_times,
+        "activityLogs": formatted_logs,
     }
 
 

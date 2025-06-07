@@ -42,6 +42,7 @@ import GuestSearch from "../components/guest-search";
 
 const EventDetailsPage = () => {
   const { id } = useParams();
+  
   const navigate = useNavigate();
   const [eventDetails, setEventDetails] = useState<EventFormData>({
     name: "",
@@ -478,9 +479,12 @@ const EventDetailsPage = () => {
                     <CardTitle className="text-lg">Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <Button className="w-full justify-start bg-purple-600 hover:bg-purple-700">
+                    <Button
+                      onClick={() => navigate(`/qrcheckin/${id}`)}
+                      className="w-full justify-start bg-purple-600 hover:bg-purple-700"
+                    >
                       <QrCode className="mr-2 h-4 w-4" />
-                      Generate QR Code
+                      Check guests in
                     </Button>
                     <Button variant="outline" className="w-full justify-start">
                       <BarChart3 className="mr-2 h-4 w-4" />

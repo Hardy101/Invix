@@ -22,8 +22,8 @@ import { Search, Filter } from "lucide-react";
 interface logs {
   id: number;
   timestamp: string;
-  guestName: string;
-  action: string;
+  guest_name: string;
+  status: string;
   method: string;
   qrCode: string;
 }
@@ -33,25 +33,44 @@ interface TableProps {
 }
 
 const ActivityLog: React.FC<TableProps> = ({ logs }) => {
- 
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   const getStatusBadge = (action: string) => {
     switch (action) {
-      case "Checked In":
+      case "checked_in":
         return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          <Badge
+            variant="default"
+            className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
+          >
             Checked In
           </Badge>
         );
       case "Checked Out":
         return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+          <Badge
+            variant="default"
+            className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20"
+          >
             Checked Out
           </Badge>
         );
       case "Registration":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+          <Badge
+            variant="default"
+            className="bg-yellow-500/10 text-yellow-700 hover:bg-yellow-500/20"
+          >
             Registration
           </Badge>
         );
@@ -90,26 +109,25 @@ const ActivityLog: React.FC<TableProps> = ({ logs }) => {
           <TableHeader>
             <TableRow>
               <TableHead>Timestamp</TableHead>
-              <TableHead>UUID</TableHead>
               <TableHead>Guest Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Method</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {logs.map((log) => (
-              <TableRow key={log.id}>
-                <TableCell className="font-mono text-sm">
-                  {log.timestamp}
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {log.qrCode}
-                </TableCell>
-                <TableCell className="font-medium">{log.guestName}</TableCell>
-                <TableCell>{getStatusBadge(log.action)}</TableCell>
-                <TableCell>{log.method}</TableCell>
-              </TableRow>
-            ))}
+            {logs &&
+              logs.map((log) => (
+                <TableRow key={log.id}>
+                  <TableCell className="font-mono text-sm">
+                    {formatTimestamp(log.timestamp)}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {log.guest_name}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(log.status)}</TableCell>
+                  <TableCell>{log.method}</TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </CardContent>
