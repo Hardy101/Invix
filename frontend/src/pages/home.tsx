@@ -33,9 +33,11 @@ import Navbar from "../components/navbar";
 import TopNavigation from "../components/homePage/topNavigation";
 import CreateEventForm from "../components/homePage/createEventForm";
 import { url } from "../constants/variables";
+import { useAuth } from "../context/AuthProvider";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { events, isLoading, fetchEvents } = useEventStore();
 
   const [isCreateEventActive, setIsCreateEventActive] = useState(false);
@@ -91,7 +93,7 @@ const Home: React.FC = () => {
         <div className="flex flex-wrap gap-y-4 items-center justify-between">
           <div>
             <h1 className="text-3xl font-poppins-bold text-gray-900">
-              Welcome back, John!
+              Welcome back, {user?.name}!
             </h1>
             <p className="text-gray-600 mt-1">
               Here's what's happening with your events today.

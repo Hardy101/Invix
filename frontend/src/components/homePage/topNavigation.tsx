@@ -1,46 +1,37 @@
 import { Link } from "react-router";
-import { Plus } from "lucide-react";
+import { Plus, HelpCircleIcon, Bell, Settings2Icon } from "lucide-react";
+
+// shadcn
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 // Local Imports
 import { CreateEventFormProps } from "../../constants/interfaces";
 import { icons } from "../../constants/media";
-import { profile } from "../../constants/media";
+import { useAuth } from "../../context/AuthProvider";
 
 const TopNavigation: React.FC<CreateEventFormProps> = ({
   setIsCreateEventActive,
 }) => {
-  const navLinks = [
-    { id: 0, text: "Home", path: "/home" },
-    {
-      id: 1,
-      text: "Analytics",
-      path: "/analytics",
-    },
-    { id: 2, text: "Help", path: "#" },
-  ];
+  const { user } = useAuth();
 
   return (
     <div className="relative nav text-sm py-4 px-8 border-b">
-      <div className="w-full mobile-nav flex items-center justify-between md:hidden">
-        <button
-          onClick={() => setIsCreateEventActive(true)}
-          className="bs-2 rounded-md bg-white px-2 py-1 text-xl hover:bg-primary hover:text-white"
-        >
-          <i className="fa-solid fa-plus text-xl"></i>
-        </button>
-
-        {/* <button className="bg-gray-1/20 fixed top-0 left-9/20 p-2 flex rounded-b-full">
-          <Link
-            to={"/qrcheckin"}
-            className="flex text-white p-3 text-2xl bg-primary rounded-full"
-          >
-            <i className="fa-solid fa-camera"></i>
-          </Link>
-        </button> */}
+      <div className="w-full mobile-nav flex items-center gap-8 md:hidden">
+        <Link to={"/home"} className="grow">
+          <img
+            src={icons.logo}
+            alt="logo of invix"
+            width={80}
+            className="mr-auto"
+          />
+        </Link>
         {/* Notifications button */}
-        <button className="text-2xl">
-          <i className="fa-regular fa-bell"></i>
-        </button>
+        <Link to={"#"}>
+          <Bell width={"auto"} height={25} />
+        </Link>
+        <Link to={"#"}>
+          <HelpCircleIcon width={"auto"} height={25} />
+        </Link>
       </div>
 
       {/* Nav menu for lg screens */}
@@ -51,11 +42,21 @@ const TopNavigation: React.FC<CreateEventFormProps> = ({
           </Link>
         </li>
 
-        {navLinks.map((link) => (
-          <li key={link.id} className="text-black">
-            <Link to={link.path}>{link.text}</Link>
-          </li>
-        ))}
+        <li>
+          <Link to={"/home"} className="text-sm">
+            Home
+          </Link>
+        </li>
+        <li>
+          <Link to={"/analytics"} className="text-sm">
+            Analytics
+          </Link>
+        </li>
+        <li>
+          <Link to={"#"} className="text-sm">
+            Help
+          </Link>
+        </li>
 
         <li className="ml-auto">
           <button
@@ -68,21 +69,26 @@ const TopNavigation: React.FC<CreateEventFormProps> = ({
         </li>
         <li>
           <Link to={"#"} className="text-xl">
-            <i className="fa-solid fa-gear"></i>
+            <Settings2Icon width={"auto"} height={20} fill="currentColor" />
           </Link>
         </li>
         <li>
           <Link to={"#"} className="text-xl">
-            <i className="fa-solid fa-bell"></i>
+            <Bell width={"auto"} height={20} fill="currentColor" />
           </Link>
         </li>
         <li>
           <Link to={"/profile"} className="text-xl">
-            <img
-              src={profile}
-              alt="Image of user"
-              className="w-8 rounded-full"
-            />
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="/images/profile-avatar.png" alt="Profile" />
+              <AvatarFallback className="bg-purple-100 text-purple-600 text-lg">
+                {user?.name
+                  ?.split(" ")
+                  .map((word) => word[0])
+                  .join("")
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           </Link>
         </li>
       </ul>
