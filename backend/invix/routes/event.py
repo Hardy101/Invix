@@ -333,6 +333,33 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to delete event: {str(e)}")
 
 
+@router.put("/activate/{event_id}", response_model=EventOut)
+def activate_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
+    # Verify event exists and belongs to user
+    event = (
+        db.query(Event)
+        .filter(Event.id == event_id, Event.created_by == current_user.id)
+        .first()
+    )
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    if event.status == "active":
+        raise HTTPException(status_code=400, detail="Event is already active")
+
+    # Update event status to active
+    event.status = "active"
+    db.commit()
+    db.refresh(event)
+
+    return event
+
+
 # Delete a guest by ID
 @router.delete("/delete-guest/{guest_id}")
 def delete_guest(guest_id: int, db: Session = Depends(get_db)):

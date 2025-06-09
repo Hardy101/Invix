@@ -79,6 +79,7 @@ class EventBase(BaseModel):
 class EventResponse(EventBase):
     id: int
     time: str
+    status: str
 
     class Config:
         from_attributes = True  # To support SQLAlchemy models directly

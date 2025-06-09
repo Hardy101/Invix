@@ -39,10 +39,11 @@ import { fetchEventDetails } from "../utils/functions";
 import { url } from "../constants/variables";
 import axios from "axios";
 import GuestSearch from "../components/guest-search";
+import { useToastStore } from "../store/useToastStore";
 
 const EventDetailsPage = () => {
   const { id } = useParams();
-  
+
   const navigate = useNavigate();
   const [eventDetails, setEventDetails] = useState<EventFormData>({
     name: "",
@@ -90,6 +91,29 @@ const EventDetailsPage = () => {
         navigate("/home");
       } else {
         console.error("Error deleting event:", response.data);
+      }
+    } catch (err: any) {
+      console.error(`Error: ${err}`);
+    }
+  };
+
+  const activateEvent = async () => {
+    try {
+      const response = await axios.put(
+        `${url}/event/activate/${id}`,
+        {},
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        setEventDetails((prev) => ({ ...prev, status: "Published" }));
+        useToastStore.getState().setToastState({
+          isToastActive: true,
+          type: "success",
+          text: "Event Activated",
+          subtext: "Your event is now live!",
+        });
+      } else {
+        console.error("Error activating event:", response.data);
       }
     } catch (err: any) {
       console.error(`Error: ${err}`);
@@ -159,7 +183,7 @@ const EventDetailsPage = () => {
               <p className="text-sm text-gray-500">Manage your event</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="grid grid-cols-3 md:grid-cols-5 items-center space-x-3 space-y-3">
             <Button
               variant="outline"
               size="sm"
@@ -179,6 +203,10 @@ const EventDetailsPage = () => {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
+            <Button size="sm" onClick={handleDeleteEvent} variant="destructive">
+              <Trash className="mr-2 h-4 w-4" />
+              Delete Event
+            </Button>{" "}
             <Button
               size="sm"
               onClick={() => {
@@ -188,10 +216,6 @@ const EventDetailsPage = () => {
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit Event
-            </Button>
-            <Button size="sm" onClick={handleDeleteEvent} variant="destructive">
-              <Trash className="mr-2 h-4 w-4" />
-              Delete Event
             </Button>
           </div>
         </div>
@@ -644,7 +668,11 @@ const EventDetailsPage = () => {
                           Enable QR code check-ins
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        onClick={activateEvent}
+                        variant="outline"
+                        size="sm"
+                      >
                         Enable
                       </Button>
                     </div>
