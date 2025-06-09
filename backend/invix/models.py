@@ -31,6 +31,8 @@ class Event(Base):
     created_by = Column(Integer, ForeignKey("users.id"))
     time = Column(String, nullable=True)
     image_url = Column(String, default="default_event.jpg")
+    status = Column(String, default="upcoming")
+    created_at = Column(DateTime, default=datetime.now())
 
     guests = relationship("Guest", back_populates="event")
     activitylogs = relationship("ActivityLog", back_populates="event")
