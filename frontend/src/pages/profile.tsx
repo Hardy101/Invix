@@ -13,7 +13,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Building,
   Clock,
   Eye,
   ChevronRight,
@@ -166,10 +165,6 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <MapPin className="h-4 w-4" />
-                        <span>--</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Building className="h-4 w-4" />
                         <span>--</span>
                       </div>
                     </div>

@@ -14,10 +14,13 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True, unique=True)
     name = Column(String, nullable=False)
+    phone = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="invitee")
     plan = Column(String, default="basic")
+    location = Column(String, default="not set")
+    created_at = Column(DateTime, default=datetime.now())
 
 
 class Event(Base):
