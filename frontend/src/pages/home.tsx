@@ -239,7 +239,7 @@ const Home: React.FC = () => {
                             <Users className="mr-1 h-3 w-3" />
                             {event.expected_guests} attendees
                           </div>
-                          <Badge variant="outline">party</Badge>
+                          <Badge variant="outline">{event.status}</Badge>
                         </div>
                       </div>
                     </div>
