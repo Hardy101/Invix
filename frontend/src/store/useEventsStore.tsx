@@ -11,6 +11,7 @@ interface Event {
   time: string;
   location: string;
   expected_guests: number;
+  status: string;
 }
 
 interface EventStore {

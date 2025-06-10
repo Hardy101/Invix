@@ -35,6 +35,10 @@ import CreateEventForm from "../components/homePage/createEventForm";
 import { url } from "../constants/variables";
 import { useAuth } from "../context/AuthProvider";
 
+const formatCount = (count: number) => {
+  return count > 10000 ? "10k+" : count.toString();
+};
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -136,10 +140,10 @@ const Home: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {events.reduce(
+                {formatCount(events.reduce(
                   (total, event) => total + (event.expected_guests || 0),
                   0
-                )}
+                ))}
               </div>
               <p className="text-xs text-muted-foreground">
                 +23% from last month
@@ -155,7 +159,13 @@ const Home: React.FC = () => {
               <Eye className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">
+                {events.reduce(
+                  (total, event) =>
+                    event.status === "active" ? total + 1 : total,
+                  0
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">Currently running</p>
             </CardContent>
           </Card>

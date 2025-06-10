@@ -30,3 +30,7 @@ react dependencies.txt
 
 # Environment files
 *.env
+
+qr_codes
+events
+*.db
