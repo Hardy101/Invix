@@ -166,7 +166,9 @@ async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db))
 
 @router.get("/me", response_model=PublicUser)
 def get_current_user(current_user: User = Depends(fetch_current_user)):
-    return PublicUser.model_validate(current_user, from_attributes=True)
+    user_data = PublicUser.model_validate(current_user, from_attributes=True)
+    print("User data being returned:", user_data.dict())  # Debug log
+    return user_data
 
 
 @router.post("/logout")

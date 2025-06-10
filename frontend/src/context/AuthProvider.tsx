@@ -15,6 +15,9 @@ interface UserInfo {
   email: string;
   role: string;
   plan: string;
+  phone: string;
+  location: string;
+  created_at: string;
 }
 
 interface AuthContextType {
@@ -42,10 +45,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
       if (!res.ok) throw new Error("Not authenticated");
       const response: UserInfo = await res.json();
+      console.log("API Response:", response);
       setUser(response);
       setIsAuthenticated(true);
-      // console.log("User Authenticated", response);
-    } catch {
+    } catch (error) {
+      console.error("Auth check error:", error);
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
@@ -71,7 +75,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
       );
       if (response.status === 200) {
-        // console.log("Logout successful", response.data);
         setIsAuthenticated(false);
         setUser(null);
         return true;
@@ -80,7 +83,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return false;
       }
     } catch (err) {
-      // console.error("Logout failed", err);
       return false;
     }
   };

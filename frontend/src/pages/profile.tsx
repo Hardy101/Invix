@@ -39,18 +39,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { events, fetchEvents, clearEvents } = useEventStore();
-
-  const userProfile = {
-    name: "Carmine Phalange",
-    username: "@carminephalange",
-    email: "carmine.phalange@email.com",
-    phone: "+1 (555) 123-4567",
-    location: "New York, NY",
-    company: "Event Solutions Inc.",
-    role: "Event Manager",
-    joinDate: "January 2023",
-    bio: "Hey there, i use Invix",
-  };
+  console.log(user);
 
   const recentEvents = events.slice(0, 2);
 
@@ -152,7 +141,9 @@ const Profile = () => {
                       <p className="text-purple-600 font-medium">
                         @{user?.email}
                       </p>
-                      <p className="text-gray-600 mt-2">{userProfile.bio}</p>
+                      <p className="text-gray-600 mt-2">
+                        Hey there, i use Invix
+                      </p>
                     </div>
                     <div className="grid gap-3 md:grid-cols-2">
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -161,11 +152,11 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <Phone className="h-4 w-4" />
-                        <span>--</span>
+                        <span>{user?.phone}</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <MapPin className="h-4 w-4" />
-                        <span>--</span>
+                        <span>{user?.location}</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -174,7 +165,19 @@ const Profile = () => {
                       </Badge>
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
                         <Clock className="h-3 w-3" />
-                        <span>Joined --</span>
+                        <span>
+                          Joined{" "}
+                          {user?.created_at
+                            ? new Date(user.created_at).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )
+                            : ""}
+                        </span>
                       </div>
                     </div>
                   </div>

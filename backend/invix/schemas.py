@@ -1,5 +1,5 @@
 # File for FastAPI operations and database connection management.
-from datetime import date
+from datetime import date, datetime
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -42,6 +42,9 @@ class PublicUser(BaseModel):
     email: str
     role: str
     plan: str
+    phone: str
+    location: str
+    created_at: datetime
 
     class Config:
         from_attributes = True
