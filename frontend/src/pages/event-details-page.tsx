@@ -1,4 +1,26 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import axios from "axios";
+import {
+  Home,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Edit,
+  Share2,
+  QrCode,
+  BarChart3,
+  Download,
+  UserCheck,
+  AlertCircle,
+  Star,
+  X,
+  Trash,
+  SendIcon,
+} from "lucide-react";
+
+// shadcn-ui components
 import {
   Card,
   CardContent,
@@ -15,37 +37,32 @@ import {
   TabsList,
   TabsTrigger,
 } from "../components/ui/tabs";
-import {
-  Home,
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Edit,
-  Share2,
-  QrCode,
-  BarChart3,
-  Download,
-  UserCheck,
-  AlertCircle,
-  MessageSquare,
-  Star,
-  X,
-  Trash,
-} from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router";
-import { EventFormData } from "../constants/interfaces";
+
+// local importss
+import { EventFormData, EventResponse } from "../constants/interfaces";
 import { fetchEventDetails } from "../utils/functions";
 import { url } from "../constants/variables";
-import axios from "axios";
 import GuestSearch from "../components/guest-search";
 import { useToastStore } from "../store/useToastStore";
+import { useAnalyticsStore } from "../store/useAnalyticsStore";
+import Modal from "../components/modal";
+import { useModalState } from "../store/useModalStore";
 
 const EventDetailsPage = () => {
   const { id } = useParams();
 
   const navigate = useNavigate();
-  const [eventDetails, setEventDetails] = useState<EventFormData>({
+  const { analytics, fetchAnalytics } = useAnalyticsStore();
+  const { isModalActive, setIsModalActive } = useModalState();
+  const [eventDetails, setEventDetails] = useState<EventResponse>({
+    name: "",
+    date: "",
+    location: "",
+    time: "",
+    expected_guests: 0,
+    status: "",
+  });
+  const [formData, setFormData] = useState<EventFormData>({
     name: "",
     date: "",
     location: "",
@@ -64,15 +81,11 @@ const EventDetailsPage = () => {
       return;
     }
     try {
-      const response = await axios.put(
-        `${url}/event/update/${id}`,
-        eventDetails,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axios.put(`${url}/event/update/${id}`, formData, {
+        withCredentials: true,
+      });
       if (response.status === 200) {
-        fetchEventDetails(id, setGuestList, setEventDetails);
+        fetchEventDetails(id, setGuestList, setFormData);
         setIsSidebarOpen(false);
       } else {
         console.error("Error updating event:", response.data);
@@ -119,19 +132,6 @@ const EventDetailsPage = () => {
       console.error(`Error: ${err}`);
     }
   };
-  const eventData = {
-    title: "Avantgardey",
-    location: "Tokyo International Forum, Tokyo",
-    date: "June 6, 2025",
-    time: "21:56",
-    status: "Published",
-    category: "Performance",
-    totalCapacity: 9000,
-    registeredGuests: 8456,
-    checkedIn: 0,
-    checkedOut: 0,
-    pending: 8456,
-  };
 
   const recentActivity = [
     { action: "New registration", guest: "Yuki Tanaka", time: "5 minutes ago" },
@@ -158,17 +158,74 @@ const EventDetailsPage = () => {
     "Meet & greet with performers",
     "Professional photography allowed",
   ];
+  console.log(eventDetails);
 
   useEffect(() => {
     if (!id) {
       console.error("No event ID provided");
       return;
     }
-    fetchEventDetails(id, setGuestList, setEventDetails);
+    fetchEventDetails(id, setGuestList, (data) => {
+      setEventDetails(data);
+      setFormData(data);
+    });
+    fetchAnalytics(id);
   }, [id]);
+
+  // Add effect to prevent scrolling when modal is active
+  useEffect(() => {
+    if (isModalActive) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isModalActive]);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
+      {/* Floating components */}
+      {isModalActive && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsModalActive(false)}
+        />
+      )}
+      <Modal>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Delete Event</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsModalActive(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mb-6">
+            Are you sure you want to delete this event? This action cannot be
+            undone.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setIsModalActive(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                handleDeleteEvent();
+                setIsModalActive(false);
+              }}
+            >
+              Delete Event
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Header */}
       <header className="border-b bg-white">
         <div className="flex flex-col justify-between gap-y-4 px-6 py-3 md:flex-row md:items-center">
@@ -183,7 +240,7 @@ const EventDetailsPage = () => {
               <p className="text-sm text-gray-500">Manage your event</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 md:grid-cols-5 items-center space-x-3 space-y-3">
+          <div className="grid grid-cols-3 md:grid-cols-5 items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -203,10 +260,14 @@ const EventDetailsPage = () => {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button size="sm" onClick={handleDeleteEvent} variant="destructive">
+            <Button
+              size="sm"
+              onClick={() => setIsModalActive(true)}
+              variant="destructive"
+            >
               <Trash className="mr-2 h-4 w-4" />
               Delete Event
-            </Button>{" "}
+            </Button>
             <Button
               size="sm"
               onClick={() => {
@@ -298,10 +359,10 @@ const EventDetailsPage = () => {
                     <label className="text-sm font-medium">Event Name</label>
                     <input
                       type="text"
-                      value={eventDetails.name}
+                      value={formData.name}
                       onChange={(e) =>
-                        setEventDetails({
-                          ...eventDetails,
+                        setFormData({
+                          ...formData,
                           name: e.target.value,
                         })
                       }
@@ -312,10 +373,10 @@ const EventDetailsPage = () => {
                     <label className="text-sm font-medium">Date</label>
                     <input
                       type="date"
-                      value={eventDetails.date}
+                      value={formData.date}
                       onChange={(e) =>
-                        setEventDetails({
-                          ...eventDetails,
+                        setFormData({
+                          ...formData,
                           date: e.target.value,
                         })
                       }
@@ -326,10 +387,10 @@ const EventDetailsPage = () => {
                     <label className="text-sm font-medium">Time</label>
                     <input
                       type="time"
-                      value={eventDetails.time}
+                      value={formData.time}
                       onChange={(e) =>
-                        setEventDetails({
-                          ...eventDetails,
+                        setFormData({
+                          ...formData,
                           time: e.target.value,
                         })
                       }
@@ -340,10 +401,10 @@ const EventDetailsPage = () => {
                     <label className="text-sm font-medium">Location</label>
                     <input
                       type="text"
-                      value={eventDetails.location}
+                      value={formData.location}
                       onChange={(e) =>
-                        setEventDetails({
-                          ...eventDetails,
+                        setFormData({
+                          ...formData,
                           location: e.target.value,
                         })
                       }
@@ -356,10 +417,10 @@ const EventDetailsPage = () => {
                     </label>
                     <input
                       type="number"
-                      value={eventDetails.expected_guests}
+                      value={formData.expected_guests}
                       onChange={(e) =>
-                        setEventDetails({
-                          ...eventDetails,
+                        setFormData({
+                          ...formData,
                           expected_guests: parseInt(e.target.value),
                         })
                       }
@@ -466,16 +527,15 @@ const EventDetailsPage = () => {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>checked-in</span>
+                        <span>Checked in</span>
                         <span>
-                          {eventData.registeredGuests.toLocaleString()} /{" "}
+                          {analytics.checkedIn.toLocaleString()} /{" "}
                           {eventDetails.expected_guests.toLocaleString()}
                         </span>
                       </div>
                       <Progress
                         value={
-                          (eventData.registeredGuests /
-                            eventDetails.expected_guests) *
+                          (analytics.checkedIn / eventDetails.expected_guests) *
                           100
                         }
                         className="h-2"
@@ -484,13 +544,13 @@ const EventDetailsPage = () => {
                     <div className="grid grid-cols-2 gap-4 pt-4">
                       <div className="text-center">
                         <p className="text-2xl font-bold text-green-600">
-                          {eventData.checkedIn}
+                          {analytics.checkedIn}
                         </p>
                         <p className="text-xs text-gray-500">Checked In</p>
                       </div>
                       <div className="text-center">
                         <p className="text-2xl font-bold text-yellow-600">
-                          {eventData.pending.toLocaleString()}
+                          {analytics.pending.toLocaleString()}
                         </p>
                         <p className="text-xs text-gray-500">Pending</p>
                       </div>
@@ -515,8 +575,8 @@ const EventDetailsPage = () => {
                       <Link to={"/analytics"}>Analytics</Link>
                     </Button>
                     <Button variant="outline" className="w-full justify-start">
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Send Updates
+                      <SendIcon className="mr-2 h-4 w-4" />
+                      Send out invitations
                     </Button>
                   </CardContent>
                 </Card>
@@ -599,10 +659,10 @@ const EventDetailsPage = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {eventData.registeredGuests.toLocaleString()}
+                        {eventDetails.expected_guests.toLocaleString()}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        94% of capacity
+                        Event capacity
                       </p>
                     </CardContent>
                   </Card>
@@ -615,7 +675,7 @@ const EventDetailsPage = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {eventData.checkedIn}
+                        {analytics.checkedIn}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Event hasn't started
@@ -631,7 +691,7 @@ const EventDetailsPage = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {eventData.pending.toLocaleString()}
+                        {analytics.pending.toLocaleString()}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Awaiting check-in
@@ -652,39 +712,24 @@ const EventDetailsPage = () => {
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Registration Open</p>
-                        <p className="text-sm text-gray-500">
-                          Allow new registrations
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Toggle
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
                         <p className="font-medium">Check-in Enabled</p>
                         <p className="text-sm text-gray-500">
                           Enable QR code check-ins
                         </p>
                       </div>
+
                       <Button
+                        disabled={
+                          !eventDetails.status ||
+                          eventDetails.status !== "Published"
+                        }
                         onClick={activateEvent}
                         variant="outline"
                         size="sm"
                       >
-                        Enable
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Email Notifications</p>
-                        <p className="text-sm text-gray-500">
-                          Send updates to guests
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Configure
+                        {eventDetails.status == "active"
+                          ? "Active"
+                          : "Activate"}
                       </Button>
                     </div>
                   </CardContent>

@@ -6,6 +6,16 @@ export interface EventFormData {
   time?: string;
   image?: File;
   guest_list?: File;
+  status?: string;
+}
+
+export interface EventResponse {
+  name: string;
+  date: string;
+  location: string;
+  expected_guests: number;
+  time: string;
+  status: string;
 }
 
 export interface Guest {
@@ -32,4 +42,3 @@ export interface EventModalProps {
   setGuest: React.Dispatch<React.SetStateAction<Guest>>;
   setFormData: React.Dispatch<React.SetStateAction<EventFormData>>;
 }
-

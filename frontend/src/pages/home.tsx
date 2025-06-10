@@ -140,10 +140,12 @@ const Home: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCount(events.reduce(
-                  (total, event) => total + (event.expected_guests || 0),
-                  0
-                ))}
+                {formatCount(
+                  events.reduce(
+                    (total, event) => total + (event.expected_guests || 0),
+                    0
+                  )
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 +23% from last month
