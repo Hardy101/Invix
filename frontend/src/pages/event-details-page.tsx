@@ -85,7 +85,7 @@ const EventDetailsPage = () => {
         withCredentials: true,
       });
       if (response.status === 200) {
-        fetchEventDetails(id, setGuestList, setFormData);
+        fetchEventDetails(id, setGuestList, setEventDetails);
         setIsSidebarOpen(false);
       } else {
         console.error("Error updating event:", response.data);
@@ -158,7 +158,6 @@ const EventDetailsPage = () => {
     "Meet & greet with performers",
     "Professional photography allowed",
   ];
-  console.log(eventDetails);
 
   useEffect(() => {
     if (!id) {
@@ -167,7 +166,6 @@ const EventDetailsPage = () => {
     }
     fetchEventDetails(id, setGuestList, (data) => {
       setEventDetails(data);
-      setFormData(data);
     });
     fetchAnalytics(id);
   }, [id]);
@@ -230,10 +228,12 @@ const EventDetailsPage = () => {
       <header className="border-b bg-white">
         <div className="flex flex-col justify-between gap-y-4 px-6 py-3 md:flex-row md:items-center">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Link to="/home">
-                <Home className="h-5 w-5" />
-              </Link>
+            <Button
+              onClick={() => navigate("/home")}
+              variant="ghost"
+              size="icon"
+            >
+              <Home className="h-5 w-5" />
             </Button>
             <div>
               <h1 className="text-xl font-semibold">Event Details</h1>
@@ -719,16 +719,13 @@ const EventDetailsPage = () => {
                       </div>
 
                       <Button
-                        disabled={
-                          !eventDetails.status ||
-                          eventDetails.status !== "Published"
-                        }
+                        disabled={eventDetails.status == "active"}
                         onClick={activateEvent}
                         variant="outline"
                         size="sm"
                       >
                         {eventDetails.status == "active"
-                          ? "Active"
+                          ? "Enabled"
                           : "Activate"}
                       </Button>
                     </div>

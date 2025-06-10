@@ -1,6 +1,6 @@
 import axios from "axios";
 import { url } from "../constants/variables";
-import { EventFormData } from "../constants/interfaces";
+import { EventResponse } from "../constants/interfaces";
 
 // converting date format to dd-MMM
 export const formatDate = (dateStr: string) => {
@@ -46,12 +46,12 @@ export const copyToClipboard = (target: HTMLElement | null): Promise<void> => {
 };
 
 // Function to fetch event deta
-export const fetchEventDetails = async (
+export const fetchEventDetails = async <T extends EventResponse>(
   id: string,
   setGuestList: React.Dispatch<
     React.SetStateAction<Array<{ id: string; name: string; tags: string }>>
   >,
-  setFormData?: React.Dispatch<React.SetStateAction<EventFormData>>
+  setData?: React.Dispatch<React.SetStateAction<T>>
 ) => {
   try {
     const [eventRes, guestsRes] = await Promise.all([
@@ -59,8 +59,16 @@ export const fetchEventDetails = async (
       axios.get(`${url}/event/guests/${id}`),
     ]);
     if (eventRes.status === 200) {
-      const { name, date, location, expected_guests, time } = eventRes.data;
-      setFormData?.({ name, date, location, expected_guests, time });
+      const { name, date, location, expected_guests, time, status } =
+        eventRes.data;
+      setData?.({
+        name,
+        date,
+        location,
+        expected_guests,
+        time,
+        ...(status && { status }),
+      } as T);
     }
 
     if (guestsRes.status === 200) {

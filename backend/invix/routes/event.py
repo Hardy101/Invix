@@ -173,7 +173,7 @@ async def create_event(
 
 
 # Returns the event with the given ID and If the event is not found, it raises a 404 error
-@router.get("/get-event/{event_id}", response_model=EventOut)
+@router.get("/get-event/{event_id}", response_model=EventResponse)
 def get_event(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:

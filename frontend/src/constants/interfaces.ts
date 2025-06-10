@@ -6,7 +6,6 @@ export interface EventFormData {
   time?: string;
   image?: File;
   guest_list?: File;
-  status?: string;
 }
 
 export interface EventResponse {
