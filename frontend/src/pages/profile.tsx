@@ -16,6 +16,7 @@ import {
   Clock,
   Eye,
   ChevronRight,
+  X,
 } from "lucide-react";
 
 // shadcn
@@ -34,9 +35,12 @@ import { Separator } from "../components/ui/separator";
 // local imports
 import { useAuth } from "../context/AuthProvider";
 import { useEventStore } from "../store/useEventsStore";
+import { useModalState } from "../store/useModalStore";
+import Modal from "../components/modal";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { isModalActive, setIsModalActive } = useModalState();
   const { user, logout } = useAuth();
   const { events, fetchEvents, clearEvents } = useEventStore();
   console.log(user);
@@ -82,11 +86,58 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    if (isModalActive) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
     fetchEvents();
-  }, []);
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isModalActive]);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
+      {/* Floating components */}
+      {/* Floating components */}
+      {isModalActive && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsModalActive(false)}
+        />
+      )}
+      <Modal>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Sign out</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsModalActive(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mb-6">
+            Are you sure you want to sign out? You can always log back in later.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setIsModalActive(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                handleLogout();
+                setIsModalActive(false);
+              }}
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </Modal>
       {/* Header */}
       <header className="border-b bg-white">
         <div className="flex h-16 items-center justify-between px-6">
@@ -323,7 +374,7 @@ const Profile = () => {
                 </Button>
                 <Separator />
                 <Button
-                  onClick={handleLogout}
+                  onClick={() => setIsModalActive(true)}
                   variant="destructive"
                   className="w-full justify-start"
                 >
