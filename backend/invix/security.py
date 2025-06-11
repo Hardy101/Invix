@@ -6,12 +6,13 @@ import bcrypt
 from sqlalchemy.orm import Session
 
 # Local imports
-from database import SessionLocal
-from models import User
-from variables import ALGORITHM, SECRET_KEY, EXPIRY_DATE
-# from .database import SessionLocal
-# from .models import User
-# from .variables import ALGORITHM, SECRET_KEY, EXPIRY_DATE
+# from database import SessionLocal
+# from models import User
+# from variables import ALGORITHM, SECRET_KEY, EXPIRY_DATE
+
+from .database import SessionLocal
+from .models import User
+from .variables import ALGORITHM, SECRET_KEY, EXPIRY_DATE
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 

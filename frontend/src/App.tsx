@@ -13,7 +13,7 @@ import ToastNotification from "./components/toast";
 import Analytics from "./pages/analytics";
 import EventDetailsPage from "./pages/event-details-page";
 import QRCheckin from "./pages/qr-checkin-new";
-
+ 
 function App() {
   return (
     <main>

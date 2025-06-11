@@ -4,9 +4,9 @@ from uuid import uuid4
 from datetime import datetime
 
 # Local imports
-from database import Base
+# from database import Base
 
-# from .database import Base
+from .database import Base
 
 
 class User(Base):

@@ -6,17 +6,16 @@ import os
 import uuid
 
 # Local imports
-from models import Event, Guest
-from schemas import EventCreate, Guest as GuestSchema
-from models import User, Guest
-from database import SessionLocal
-from variables import ALGORITHM, SECRET_KEY
-# from ..models import Event, Guest
-# from ..schemas import EventCreate, Guest as GuestSchema
-# from ..models import User, Guest
-# from ..database import SessionLocal
-# from ..variables import ALGORITHM, SECRET_KEY
-
+# from models import Event, Guest
+# from schemas import EventCreate, Guest as GuestSchema
+# from models import User, Guest
+# from database import SessionLocal
+# from variables import ALGORITHM, SECRET_KEY
+from ..models import Event, Guest
+from ..schemas import EventCreate, Guest as GuestSchema
+from ..models import User, Guest
+from ..database import SessionLocal
+from ..variables import ALGORITHM, SECRET_KEY
 
 def get_db():
     db = SessionLocal()
