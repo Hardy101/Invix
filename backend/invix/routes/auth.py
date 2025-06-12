@@ -56,6 +56,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         hashed_password=hash_password(user.password),
         role="invitee",
+        acct_type="password",
     )
     db.add(new_user)
     db.commit()
@@ -65,7 +66,16 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+    if not db_user:
+        raise HTTPException(status_code=400, detail="User account not found. Please verify your email/username")
+
+    if db_user.acct_type != "password":
+        raise HTTPException(
+            status_code=400,
+            detail="This account was created using Google authentication",
+        )
+
+    if not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     token = create_access_token({"sub": user.email, "role": db_user.role})
@@ -114,11 +124,8 @@ async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db))
             else:
                 raise
 
-        # Extract user information
         user_email = idinfo.get("email")
-        user_name = idinfo.get(
-            "name", user_email.split("@")[0]
-        )  # Use email username if name not provided
+        user_name = idinfo.get("name", user_email.split("@")[0])
 
         if not user_email:
             raise HTTPException(
@@ -135,10 +142,17 @@ async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db))
                 email=user_email,
                 hashed_password="",  # No password for Google auth
                 role="invitee",
+                acct_type="google",  # Set account type for Google authentication
             )
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
+
+        elif db_user.acct_type != "google":
+            raise HTTPException(
+                status_code=400,
+                detail="This email is already registered with password authentication",
+            )
 
         # Generate JWT token
         token = create_access_token({"sub": user_email, "role": db_user.role})
@@ -163,7 +177,9 @@ async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db))
 
 @router.get("/me", response_model=PublicUser)
 def get_current_user(current_user: User = Depends(fetch_current_user)):
-    user_data = PublicUser.model_validate(current_user, from_attributes=True) # Debug log
+    user_data = PublicUser.model_validate(
+        current_user, from_attributes=True
+    )  # Debug log
     return user_data
 
 

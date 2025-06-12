@@ -21,6 +21,7 @@ class User(Base):
     plan = Column(String, default="basic")
     location = Column(String, default="--")
     created_at = Column(DateTime, default=datetime.now())
+    acct_type = Column(String, nullable=False)
 
 
 class Event(Base):
@@ -63,9 +64,11 @@ class ActivityLog(Base):
     __tablename__ = "activitylogs"
 
     id = Column(Integer, primary_key=True, index=True)
-    guest_id = Column(Integer, ForeignKey("guests.id"), nullable=False)
+    guest_id = Column(Integer, ForeignKey("guests.id"), nullable=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
     name = Column(VARCHAR, nullable=False)
+    type = Column(String, nullable=False)
+    description = Column(String, nullable=True)
     status = Column(String, default="pending")
     method = Column(String)
     check_in_time = Column(DateTime, nullable=True)

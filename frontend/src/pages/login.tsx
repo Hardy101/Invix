@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
+import { Ban } from "lucide-react";
 
 import { url } from "../constants/variables";
 import { useAuth } from "../context/AuthProvider";
@@ -80,7 +81,6 @@ const Login = () => {
         });
         navigate("/home");
       } catch (err: any) {
-        console.error("Login error", err);
         setErrors((prev) => ({
           ...prev,
           general:
@@ -120,8 +120,8 @@ const Login = () => {
             <hr className="grow border border-gray-400"/>
           </div>
           {errors.general && (
-            <p className="error-msg flex items-center gap-2 bg-red-300 text-red-500 text-xs rounded-md p-2 ">
-              <i className="fa-solid fa-triangle-exclamation text-lg"></i>
+            <p className="error-msg flex items-center gap-2 bg-red-300 text-xs p-2 ">
+              <Ban width={15}/>
               <span>{errors.general}</span>
             </p>
           )}
