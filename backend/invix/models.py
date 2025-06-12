@@ -4,9 +4,9 @@ from uuid import uuid4
 from datetime import datetime
 
 # Local imports
-# from database import Base
+from database import Base
 
-from .database import Base
+# from .database import Base
 
 
 class User(Base):
@@ -14,7 +14,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True, unique=True)
     name = Column(String, nullable=False)
-    phone = Column(String, unique=True, default="--")
+    phone = Column(String, default="--")
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="invitee")

@@ -9,27 +9,27 @@ import asyncio
 
 
 # Local imports
-# from database import SessionLocal
-# from models import User
-# from schemas import PublicUser, UserCreate, UserLogin, GoogleAuthRequest
-# from security import (
-#     hash_password,
-#     verify_password,
-#     create_access_token,
-# )
-# from variables import EXPIRY_DATE
-# from operations.functions import fetch_current_user
-
-from ..database import SessionLocal
-from ..models import User
-from ..schemas import PublicUser, UserCreate, UserLogin, GoogleAuthRequest
-from ..security import (
+from database import SessionLocal
+from models import User
+from schemas import PublicUser, UserCreate, UserLogin, GoogleAuthRequest
+from security import (
     hash_password,
     verify_password,
     create_access_token,
 )
-from ..variables import EXPIRY_DATE
-from ..operations.functions import fetch_current_user
+from variables import EXPIRY_DATE, GOOGLE_CLIENT_ID
+from operations.functions import fetch_current_user
+
+# from ..database import SessionLocal
+# from ..models import User
+# from ..schemas import PublicUser, UserCreate, UserLogin, GoogleAuthRequest
+# from ..security import (
+#     hash_password,
+#     verify_password,
+#     create_access_token,
+# )
+# from ..variables import EXPIRY_DATE
+# from ..operations.functions import fetch_current_user
 
 router = APIRouter(tags=["Authentication"])
 
@@ -87,8 +87,7 @@ async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Google token is required")
 
     try:
-        # Get the client ID from environment variable
-        client_id = os.getenv("GOOGLE_CLIENT_ID")
+        client_id = GOOGLE_CLIENT_ID
         if not client_id:
             raise HTTPException(
                 status_code=500, detail="Google client ID not configured"
@@ -164,8 +163,7 @@ async def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db))
 
 @router.get("/me", response_model=PublicUser)
 def get_current_user(current_user: User = Depends(fetch_current_user)):
-    user_data = PublicUser.model_validate(current_user, from_attributes=True)
-    print("User data being returned:", user_data.dict())  # Debug log
+    user_data = PublicUser.model_validate(current_user, from_attributes=True) # Debug log
     return user_data
 
 

@@ -1,7 +1,8 @@
-import os
+from config import settings
 
 EXPIRY_DATE = 60 * 60 * 24 * 7
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-SECRET_KEY = os.getenv("SECRET_KEY", "whitecrow")
+ALGORITHM = settings.ALGORITHM
+SECRET_KEY = settings.SECRET_KEY
+GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
