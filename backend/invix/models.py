@@ -64,15 +64,37 @@ class ActivityLog(Base):
     __tablename__ = "activitylogs"
 
     id = Column(Integer, primary_key=True, index=True)
-    guest_id = Column(Integer, ForeignKey("guests.id"), nullable=True)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    name = Column(VARCHAR, nullable=False)
-    type = Column(String, nullable=False)
-    description = Column(String, nullable=True)
-    status = Column(String, default="pending")
-    method = Column(String)
-    check_in_time = Column(DateTime, nullable=True)
-    check_out_time = Column(DateTime, nullable=True)
+    guest_id = Column(
+        Integer, ForeignKey("guests.id"), nullable=True
+    )  # Nullable since not all activities are guest-related
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )  # Track who performed the action
 
+    # Activity details
+    type = Column(
+        String, nullable=False
+    )  # e.g., 'check_in', 'check_out', 'event_created', 'guest_added', 'guest_list_updated'
+    description = Column(String, nullable=False)
+    status = Column(String, default="completed")  # completed, pending, failed, etc.
+
+    # Metadata
+    method = Column(
+        String, nullable=True
+    )  # How the action was performed (qr_code, manual, api, etc.)
+    activity_data = Column(
+        String, nullable=True
+    )  # JSON string for additional activity-specific data
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.now())
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+
+    # Relationships
     event = relationship("Event", back_populates="activitylogs")
     guest = relationship("Guest", back_populates="activitylogs")
+    user = relationship("User", back_populates="activitylogs")
+
+    def __repr__(self):
+        return f"<ActivityLog(id={self.id}, type={self.type}, description={self.description})>"

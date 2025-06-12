@@ -10,6 +10,7 @@ import os
 import logging
 import shutil
 from datetime import datetime, timedelta
+import json
 
 # Local imports
 from models import Event, Guest as GuestModel, ActivityLog
@@ -122,6 +123,7 @@ async def create_event(
         except Exception as e:
             logging.error(f"Image save failed: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to save image")
+
     # Create the event object
     event_data = EventCreate(
         name=name,
@@ -134,6 +136,25 @@ async def create_event(
 
     try:
         new_event = create_event_crud(db=db, event=event_data, user_id=current_user.id)
+
+        # Create activity log for event creation
+        activity_log = ActivityLog(
+            event_id=new_event.id,
+            user_id=current_user.id,
+            type="event_created",
+            description=f"Event '{name}' was created",
+            status="completed",
+            method="manual",
+            activity_data=json.dumps(
+                {
+                    "expected_guests": expected_guests,
+                    "event_date": parsed_date.isoformat(),
+                    "location": location,
+                }
+            ),
+        )
+        db.add(activity_log)
+
         # Handle guest list file after event creation
         if guest_list and guest_list.filename:
             try:
@@ -148,6 +169,7 @@ async def create_event(
                         status_code=400, detail="Unsupported guest list file type"
                     )
 
+                guest_count = 0
                 for _, row in df.iterrows():
                     name = row.get("name")
                     email = row.get("email", "")
@@ -159,6 +181,25 @@ async def create_event(
                         guest=guest_data,
                         uuid=str(uuid.uuid4()),
                     )
+                    guest_count += 1
+
+                # Create activity log for bulk guest addition
+                if guest_count > 0:
+                    bulk_activity_log = ActivityLog(
+                        event_id=new_event.id,
+                        user_id=current_user.id,
+                        type="guest_list_updated",
+                        description=f"Added {guest_count} guests via file upload",
+                        status="completed",
+                        method="bulk_import",
+                        activity_data=json.dumps(
+                            {
+                                "file_type": filename.split(".")[-1],
+                                "guests_added": guest_count,
+                            }
+                        ),
+                    )
+                    db.add(bulk_activity_log)
 
             except Exception as e:
                 logging.error(f"Error parsing guest list file: {str(e)}")
@@ -166,8 +207,10 @@ async def create_event(
                     status_code=500, detail="Failed to process guest list file"
                 )
 
+        db.commit()
         return new_event
     except Exception as e:
+        db.rollback()
         logging.error(f"Event creation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Event creation failed")
 
@@ -218,7 +261,12 @@ def get_all_guests(db: Session = Depends(get_db)):
 
 # Adds guests to an event and returns the newly added guest
 @router.post("/add-guest/{event_id}", response_model=GuestResponse)
-def add_guest(event_id: int, guest: Guest, db: Session = Depends(get_db)):
+def add_guest(
+    event_id: int,
+    guest: Guest,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
     if not guest.name or not guest.tags:
         raise HTTPException(
             status_code=400, detail="Guest name and tags cannot be empty"
@@ -226,6 +274,23 @@ def add_guest(event_id: int, guest: Guest, db: Session = Depends(get_db)):
     new_guest = add_guests_to_event(
         db=db, event_id=event_id, guest=guest, uuid=str(uuid.uuid4())
     )
+
+    # Create activity log for guest addition
+    activity_log = ActivityLog(
+        event_id=event_id,
+        guest_id=new_guest.id,
+        user_id=current_user.id,
+        type="guest_added",
+        description=f"Guest '{guest.name}' was added manually",
+        status="completed",
+        method="manual",
+        activity_data=json.dumps(
+            {"guest_email": guest.email, "guest_tags": guest.tags}
+        ),
+    )
+    db.add(activity_log)
+    db.commit()
+
     return new_guest
 
 
@@ -290,12 +355,34 @@ def update_event(event_id: int, updated: EventUpdate, db: Session = Depends(get_
 
 # Delete an event by ID
 @router.delete("/delete/{event_id}")
-def delete_event(event_id: int, db: Session = Depends(get_db)):
+def delete_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
     try:
         # Get the event
         event = db.query(Event).filter(Event.id == event_id).first()
         if not event:
             raise HTTPException(status_code=404, detail="Event not found")
+
+        # Create activity log for event deletion
+        activity_log = ActivityLog(
+            event_id=event_id,
+            user_id=current_user.id,
+            type="event_deleted",
+            description=f"Event '{event.name}' was deleted",
+            status="completed",
+            method="manual",
+            activity_data=json.dumps(
+                {
+                    "event_date": event.date.isoformat(),
+                    "expected_guests": event.expected_guests,
+                    "location": event.location,
+                }
+            ),
+        )
+        db.add(activity_log)
 
         # Delete event image if it exists
         if event.image_url and event.image_url != "default_event.jpg":
@@ -319,18 +406,16 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
                         f"Error deleting QR code file for guest {guest.id}: {str(e)}"
                     )
 
-        # Create a new session for deleting activity logs
+        # Delete activity logs
         activity_logs = (
             db.query(ActivityLog).filter(ActivityLog.event_id == event_id).all()
         )
         for log in activity_logs:
             db.delete(log)
-        db.commit()
 
-        # Create a new session for deleting guests
+        # Delete guests
         for guest in guests:
             db.delete(guest)
-        db.commit()
 
         # Finally delete the event
         db.delete(event)
@@ -372,10 +457,29 @@ def activate_event(
 
 # Delete a guest by ID
 @router.delete("/delete-guest/{guest_id}")
-def delete_guest(guest_id: int, db: Session = Depends(get_db)):
+def delete_guest(
+    guest_id: int,
+    db: Session = Depends(get_db),
+    current_user: PublicUser = Depends(fetch_current_user),
+):
     guest = db.query(GuestModel).filter(GuestModel.id == guest_id).first()
     if not guest:
         raise HTTPException(status_code=404, detail="Guest not found")
+
+    # Create activity log for guest deletion
+    activity_log = ActivityLog(
+        event_id=guest.event_id,
+        guest_id=guest.id,
+        user_id=current_user.id,
+        type="guest_deleted",
+        description=f"Guest '{guest.name}' was deleted",
+        status="completed",
+        method="manual",
+        activity_data=json.dumps(
+            {"guest_email": guest.email, "guest_tags": guest.tags}
+        ),
+    )
+    db.add(activity_log)
 
     # Delete the QR code file if it exists
     if guest.qr_path and os.path.exists(guest.qr_path):
@@ -570,13 +674,15 @@ def check_in_guest(
     latest_activity = (
         db.query(ActivityLog)
         .filter(
-            ActivityLog.guest_id == guest.id, ActivityLog.event_id == guest.event_id
+            ActivityLog.guest_id == guest.id,
+            ActivityLog.event_id == guest.event_id,
+            ActivityLog.type == "check_in",
         )
-        .order_by(ActivityLog.check_in_time.desc())
+        .order_by(ActivityLog.created_at.desc())
         .first()
     )
 
-    if latest_activity and latest_activity.status == "checked_in":
+    if latest_activity and latest_activity.status == "completed":
         raise HTTPException(
             status_code=400,
             detail={
@@ -584,21 +690,29 @@ def check_in_guest(
                 "message": f"{guest.name} is already checked in",
                 "guest_name": guest.name,
                 "last_check_in": (
-                    latest_activity.check_in_time.isoformat()
-                    if latest_activity.check_in_time
+                    latest_activity.activity_data.get("check_in_time")
+                    if latest_activity.activity_data
                     else None
                 ),
             },
         )
 
     # Create activity log entry
+    check_in_time = datetime.now()
     activity_log = ActivityLog(
         guest_id=guest.id,
         event_id=guest.event_id,
-        name=guest.name,
-        status="checked_in",
-        check_in_time=datetime.now(),
+        user_id=current_user.id,
+        type="check_in",
+        description=f"Guest {guest.name} checked in via QR code",
+        status="completed",
         method="qr_code",
+        activity_data=json.dumps(
+            {
+                "check_in_time": check_in_time.isoformat(),
+                "location": "main entrance",  # You can make this dynamic if needed
+            }
+        ),
     )
     db.add(activity_log)
     db.commit()
@@ -607,7 +721,7 @@ def check_in_guest(
         "message": f"Guest {guest.name} checked in successfully",
         "status": "success",
         "guest_name": guest.name,
-        "check_in_time": activity_log.check_in_time.isoformat(),
+        "check_in_time": check_in_time.isoformat(),
     }
 
 
@@ -627,9 +741,10 @@ def check_out_guest(
         .filter(
             ActivityLog.guest_id == guest.id,
             ActivityLog.event_id == guest.event_id,
-            ActivityLog.status == "checked_in",
+            ActivityLog.type == "check_in",
+            ActivityLog.status == "completed",
         )
-        .order_by(ActivityLog.check_in_time.desc())
+        .order_by(ActivityLog.created_at.desc())
         .first()
     )
 
@@ -644,18 +759,36 @@ def check_out_guest(
         )
 
     # Create activity log entry
+    check_out_time = datetime.now()
     activity_log = ActivityLog(
         guest_id=guest.id,
         event_id=guest.event_id,
-        name=guest.name,
-        status="checked_out",
-        check_out_time=datetime.now(),
+        user_id=current_user.id,
+        type="check_out",
+        description=f"Guest {guest.name} checked out via QR code",
+        status="completed",
         method="qr_code",
+        activity_data=json.dumps(
+            {
+                "check_out_time": check_out_time.isoformat(),
+                "check_in_time": latest_activity.activity_data.get("check_in_time"),
+                "duration": (
+                    check_out_time
+                    - datetime.fromisoformat(
+                        latest_activity.activity_data.get("check_in_time")
+                    )
+                ).total_seconds()
+                / 3600,  # Duration in hours
+            }
+        ),
     )
     db.add(activity_log)
     db.commit()
 
-    return {"message": f"Guest {guest.name} checked out successfully"}
+    return {
+        "message": f"Guest {guest.name} checked out successfully",
+        "check_out_time": check_out_time.isoformat(),
+    }
 
 
 @router.get("/search-guest", response_model=List[GuestResponse])
