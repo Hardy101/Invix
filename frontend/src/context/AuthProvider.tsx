@@ -45,11 +45,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
       if (!res.ok) throw new Error("Not authenticated");
       const response: UserInfo = await res.json();
-      console.log("API Response:", response);
+      // console.log("API Response:", response);
       setUser(response);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error("Auth check error:", error);
+      // console.error("Auth check error:", error);
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setUser(null);
         return true;
       } else {
-        console.error("Logout failed, unexpected response", response.data);
+        // console.error("Logout failed, unexpected response", response.data);
         return false;
       }
     } catch (err) {

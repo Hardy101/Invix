@@ -23,6 +23,10 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now())
     acct_type = Column(String, nullable=False)
 
+    # Relationships
+    events = relationship("Event", back_populates="creator")
+    activitylogs = relationship("ActivityLog", back_populates="user")
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -38,6 +42,8 @@ class Event(Base):
     status = Column(String, default="upcoming")
     created_at = Column(DateTime, default=datetime.now())
 
+    # Relationships
+    creator = relationship("User", back_populates="events")
     guests = relationship("Guest", back_populates="event")
     activitylogs = relationship("ActivityLog", back_populates="event")
 
@@ -73,19 +79,13 @@ class ActivityLog(Base):
     )  # Track who performed the action
 
     # Activity details
-    type = Column(
-        String, nullable=False
-    )  # e.g., 'check_in', 'check_out', 'event_created', 'guest_added', 'guest_list_updated'
+    type = Column(String, nullable=False)
     description = Column(String, nullable=False)
-    status = Column(String, default="completed")  # completed, pending, failed, etc.
+    status = Column(String, default="completed")
 
     # Metadata
-    method = Column(
-        String, nullable=True
-    )  # How the action was performed (qr_code, manual, api, etc.)
-    activity_data = Column(
-        String, nullable=True
-    )  # JSON string for additional activity-specific data
+    method = Column(String, nullable=True)
+    activity_data = Column(String, nullable=True)
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.now())
